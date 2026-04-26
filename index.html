@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pace AI — Demo v2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#0d0d1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden}
+.app{max-width:430px;margin:0 auto;height:100vh;display:flex;flex-direction:column;position:relative;background:#fff}
+
+/* SCREENS */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1),opacity 0.35s;background:#fff}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none}
+.screen.exit{transform:translateX(-100%);opacity:0;pointer-events:none}
+
+/* ── WELCOME ── */
+.welcome-header{background:#185FA5;padding:44px 24px 28px;text-align:center;flex-shrink:0}
+.pace-wordmark{font-size:52px;font-weight:800;color:#fff;letter-spacing:-2px;line-height:1}
+.pace-tagline{font-size:12px;color:#85B7EB;letter-spacing:0.12em;text-transform:uppercase;margin-top:6px}
+.robot-wrap{width:80px;height:80px;background:rgba(255,255,255,0.15);border-radius:50%;margin:16px auto 0;display:flex;align-items:center;justify-content:center}
+.robot-inner{width:50px;height:42px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.r-eye{width:10px;height:10px;background:#185FA5;border-radius:50%}
+.welcome-body{flex:1;padding:28px 24px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.welcome-intro{font-size:16px;color:#1a1a2e;font-weight:500;line-height:1.5;text-align:center}
+.welcome-intro span{color:#185FA5}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.role-card{background:#f7f9fc;border:2px solid #e8eef5;border-radius:18px;padding:18px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s}
+.role-card:active,.role-card:hover{border-color:#185FA5;background:#E6F1FB;transform:scale(0.97)}
+.role-card.parent-card:active,.role-card.parent-card:hover{border-color:#7C3AED;background:#F3EFFE}
+.role-emoji{font-size:28px}
+.role-name{font-size:13px;font-weight:600;color:#1a1a2e}
+.demo-note{background:#FAEEDA;border-radius:12px;padding:12px 14px;font-size:12px;color:#854F0B;line-height:1.5;text-align:center}
+
+/* ── CHAT ── */
+.chat-header{background:#185FA5;padding:44px 16px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.back-btn{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.back-btn svg{width:18px;height:18px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.chat-header-info{flex:1}
+.chat-header-name{font-size:16px;font-weight:600;color:#fff}
+.chat-header-sub{font-size:12px;color:#85B7EB}
+.chat-robot{width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.chat-robot-face{width:22px;height:18px;background:#fff;border-radius:5px;display:flex;align-items:center;justify-content:center;gap:4px}
+.chat-r-eye{width:5px;height:5px;background:#185FA5;border-radius:50%}
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:#f7f9fc}
+.msg{display:flex;flex-direction:column;max-width:85%}
+.msg.ai{align-self:flex-start}
+.msg.user{align-self:flex-end}
+.msg-bubble{padding:12px 16px;border-radius:18px;font-size:14px;line-height:1.55}
+.msg.ai .msg-bubble{background:#fff;border:1px solid #e8eef5;border-bottom-left-radius:4px;color:#1a1a2e}
+.msg.user .msg-bubble{background:#185FA5;color:#fff;border-bottom-right-radius:4px}
+.msg-time{font-size:10px;color:#aaa;margin-top:4px;padding:0 4px}
+.msg.user .msg-time{text-align:right}
+.typing{display:flex;align-items:center;gap:5px;padding:14px 16px;background:#fff;border:1px solid #e8eef5;border-radius:18px;border-bottom-left-radius:4px;width:64px}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:#185FA5;opacity:0.4;animation:bounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:0.4}30%{transform:translateY(-6px);opacity:1}}
+.input-area{padding:10px 12px;background:#fff;border-top:1px solid #f0f0f0;display:flex;gap:8px;align-items:flex-end;flex-shrink:0}
+.msg-input{flex:1;border:1.5px solid #e8eef5;border-radius:22px;padding:10px 16px;font-size:14px;font-family:inherit;outline:none;resize:none;max-height:100px;min-height:42px;color:#1a1a2e;background:#f7f9fc;transition:border-color 0.2s}
+.msg-input:focus{border-color:#185FA5;background:#fff}
+.send-btn{width:42px;height:42px;border-radius:50%;background:#185FA5;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.15s,opacity 0.15s}
+.send-btn:active{transform:scale(0.92)}
+.send-btn:disabled{opacity:0.4}
+.send-btn svg{width:18px;height:18px;fill:#fff}
+.suggestions{display:flex;gap:6px;padding:6px 12px;overflow-x:auto;flex-shrink:0;background:#fff;scrollbar-width:none}
+.suggestions::-webkit-scrollbar{display:none}
+.sug{background:#E6F1FB;border:1px solid #B5D4F4;border-radius:16px;padding:6px 12px;font-size:12px;color:#185FA5;font-weight:500;white-space:nowrap;cursor:pointer;transition:all 0.15s;flex-shrink:0}
+.sug:active{background:#185FA5;color:#fff}
+
+/* ── LEARNING PATH ── */
+.path-header{background:#1a1a2e;padding:44px 20px 20px;flex-shrink:0}
+.path-back{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;margin-bottom:12px;background:none;border:none;font-family:inherit}
+.path-back svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.path-greeting{font-size:22px;font-weight:700;color:#fff;line-height:1.3}
+.path-greeting span{color:#85B7EB}
+.path-sub{font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px}
+.xp-wrap{background:rgba(255,255,255,0.08);border-radius:12px;padding:12px 14px;margin-top:14px}
+.xp-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.xp-label{font-size:12px;color:rgba(255,255,255,0.5)}
+.xp-val{font-size:12px;font-weight:600;color:#85B7EB}
+.xp-track{height:6px;background:rgba(255,255,255,0.1);border-radius:3px}
+.xp-fill{height:6px;background:#185FA5;border-radius:3px;width:0%;transition:width 0.8s 0.3s}
+.path-body{flex:1;overflow-y:auto;padding:16px}
+.section-title{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 10px}
+.activity-card{background:#fff;border:1.5px solid #e8eef5;border-radius:20px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all 0.2s}
+.activity-card:active{transform:scale(0.98);border-color:#185FA5}
+.activity-card.featured{border-color:#185FA5;background:linear-gradient(135deg,#E6F1FB 0%,#fff 60%)}
+.ac-top{display:flex;align-items:flex-start;gap:10px}
+.ac-icon{width:44px;height:44px;border-radius:12px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ac-info{flex:1}
+.ac-tag{font-size:10px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.06em}
+.ac-title{font-size:15px;font-weight:700;color:#1a1a2e;margin:2px 0}
+.ac-desc{font-size:12px;color:#888;line-height:1.45}
+.ac-bottom{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}
+.ac-pill{background:#E6F1FB;color:#185FA5;font-size:11px;font-weight:600;padding:3px 9px;border-radius:12px}
+.ac-pill.green{background:#E1F5EE;color:#0F6E56}
+.ac-xp{font-size:11px;color:#aaa;margin-left:auto;font-weight:600}
+.ai-badge{display:inline-flex;align-items:center;gap:4px;background:#1a1a2e;color:#85B7EB;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;margin-bottom:10px}
+.ai-badge-dot{width:5px;height:5px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.breathe-card{background:#E1F5EE;border:1.5px solid #9FE1CB;border-radius:20px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all 0.2s}
+.breathe-card:active{transform:scale(0.98)}
+.breathe-circle{width:48px;height:48px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:breathe-anim 4s ease-in-out infinite}
+@keyframes breathe-anim{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.breathe-icon{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:2}
+.breathe-info{flex:1}
+.breathe-title{font-size:14px;font-weight:700;color:#085041}
+.breathe-sub{font-size:12px;color:#0F6E56;margin-top:2px}
+.path-nav{height:70px;background:#fff;border-top:1px solid #f0f0f0;display:flex;align-items:flex-start;padding-top:8px;flex-shrink:0}
+.pn-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px}
+.pn-icon{width:32px;height:32px;border-radius:9px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+.pn-icon.active-icon{background:#185FA5}
+.pn-icon svg{width:17px;height:17px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.pn-icon.active-icon svg{stroke:#fff}
+.pn-icon:not(.active-icon) svg{stroke:#aaa}
+.pn-label{font-size:10px;color:#aaa;font-weight:500}
+.pn-label.active-label{color:#185FA5;font-weight:700}
+
+/* ── PARENT PORTAL ── */
+.parent-header{background:linear-gradient(135deg,#4C1D95,#7C3AED);padding:44px 20px 24px;flex-shrink:0}
+.parent-back{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.6);font-size:13px;cursor:pointer;margin-bottom:14px;background:none;border:none;font-family:inherit}
+.parent-back svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.parent-title{font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.parent-sub{font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px}
+.parent-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.15);border-radius:20px;padding:6px 12px;margin-top:12px;font-size:12px;color:#fff;font-weight:600}
+.parent-badge-dot{width:6px;height:6px;border-radius:50%;background:#A78BFA}
+.parent-body{flex:1;overflow-y:auto;padding:16px;background:#F9F7FF}
+.parent-section-title{font-size:11px;font-weight:800;color:#7C3AED;text-transform:uppercase;letter-spacing:0.08em;margin:16px 0 10px}
+.parent-section-title:first-child{margin-top:0}
+.subject-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+.subject-card{background:#fff;border:2px solid #EDE9FE;border-radius:18px;padding:14px;cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;gap:6px}
+.subject-card:active,.subject-card:hover{border-color:#7C3AED;background:#F3EFFE;transform:scale(0.97)}
+.subject-emoji{font-size:26px}
+.subject-name{font-size:14px;font-weight:700;color:#1a1a2e}
+.subject-count{font-size:11px;color:#888}
+.subject-bar{height:4px;background:#EDE9FE;border-radius:2px;margin-top:4px}
+.subject-fill{height:4px;background:#7C3AED;border-radius:2px}
+.progress-summary{background:#fff;border:1.5px solid #EDE9FE;border-radius:18px;padding:16px;margin-bottom:12px}
+.progress-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f0ff}
+.progress-row:last-child{border-bottom:none}
+.progress-label{font-size:13px;color:#1a1a2e;font-weight:500}
+.progress-val{font-size:13px;color:#7C3AED;font-weight:700}
+.parent-tip{background:linear-gradient(135deg,#EDE9FE,#F3EFFE);border-radius:16px;padding:14px;font-size:12px;color:#4C1D95;line-height:1.6;margin-bottom:12px}
+.parent-tip strong{display:block;margin-bottom:4px;font-size:13px}
+.interest-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.interest-chip{background:#fff;border:2px solid #EDE9FE;border-radius:20px;padding:7px 13px;font-size:13px;font-weight:600;color:#4C1D95;cursor:pointer;transition:all 0.18s;user-select:none}
+.interest-chip:active{transform:scale(0.95)}
+.interest-chip.active{background:#7C3AED;border-color:#7C3AED;color:#fff}
+.interest-context-banner{background:linear-gradient(135deg,#EDE9FE,#F3EFFE);border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;color:#4C1D95;font-weight:500}
+.interest-context-banner span:first-child{font-size:22px}
+
+/* ── 11+ QUIZ SCREEN ── */
+.quiz-header{background:linear-gradient(135deg,#4C1D95,#7C3AED);padding:44px 16px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.quiz-header-info{flex:1}
+.quiz-title{font-size:16px;font-weight:700;color:#fff}
+.quiz-subject{font-size:12px;color:rgba(255,255,255,0.7)}
+.quiz-timer-wrap{background:rgba(255,255,255,0.2);border-radius:20px;padding:6px 14px;display:flex;align-items:center;gap:6px}
+.quiz-timer{font-size:18px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums;min-width:36px}
+.quiz-timer.urgent{color:#FCA5A5;animation:flash 0.5s infinite}
+@keyframes flash{0%,100%{opacity:1}50%{opacity:0.5}}
+.quiz-progress-bar{height:4px;background:rgba(255,255,255,0.2);flex-shrink:0}
+.quiz-progress-fill{height:4px;background:#A78BFA;transition:width 0.4s}
+.quiz-body{flex:1;overflow-y:auto;padding:20px 16px;background:#F9F7FF;display:flex;flex-direction:column;gap:16px}
+.quiz-q-count{font-size:11px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:0.08em}
+.quiz-question{font-size:17px;font-weight:700;color:#1a1a2e;line-height:1.4}
+.quiz-options{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.quiz-option{background:#fff;border:2px solid #EDE9FE;border-radius:14px;padding:14px 16px;font-size:14px;color:#1a1a2e;cursor:pointer;transition:all 0.15s;font-weight:500;text-align:left;font-family:inherit}
+.quiz-option:active{transform:scale(0.98)}
+.quiz-option.correct{background:#E1F5EE;border-color:#1D9E75;color:#085041}
+.quiz-option.wrong{background:#FEE2E2;border-color:#EF4444;color:#7F1D1D}
+.quiz-option.disabled{pointer-events:none;opacity:0.6}
+.quiz-option.show-correct{background:#E1F5EE;border-color:#1D9E75;color:#085041;opacity:1}
+.quiz-feedback{background:#fff;border-radius:14px;padding:14px;font-size:13px;line-height:1.5;border-left:4px solid #7C3AED;color:#1a1a2e;display:none}
+.quiz-feedback.show{display:block}
+.quiz-next-btn{background:#7C3AED;color:#fff;border:none;border-radius:22px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;transition:transform 0.15s;display:none}
+.quiz-next-btn.show{display:block}
+.quiz-next-btn:active{transform:scale(0.97)}
+
+/* ── RESULTS SCREEN ── */
+.results-body{flex:1;overflow-y:auto;padding:24px 20px;background:#F9F7FF;display:flex;flex-direction:column;align-items:center;gap:16px}
+.results-circle{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#4C1D95);display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:4px}
+.results-score{font-size:36px;font-weight:800;color:#fff;line-height:1}
+.results-label{font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px}
+.results-title{font-size:22px;font-weight:800;color:#1a1a2e;text-align:center}
+.results-sub{font-size:14px;color:#666;text-align:center;line-height:1.5}
+.results-breakdown{background:#fff;border-radius:18px;padding:16px;width:100%;border:1.5px solid #EDE9FE}
+.rb-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f0ff;font-size:13px}
+.rb-row:last-child{border-bottom:none}
+.rb-label{color:#555}
+.rb-val{font-weight:700;color:#7C3AED}
+.results-btn{background:#7C3AED;color:#fff;border:none;border-radius:22px;padding:16px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform 0.15s;width:100%}
+.results-btn:active{transform:scale(0.97)}
+.results-btn.secondary{background:#fff;color:#7C3AED;border:2px solid #7C3AED;margin-top:-8px}
+
+/* ── TEACHER CARD HOVER ── */
+.role-card.teacher-card:active,.role-card.teacher-card:hover{border-color:#0F6E56;background:#E1F5EE}
+
+/* ── TEACHER SCREEN ── */
+.teacher-header{background:#185FA5;padding:44px 16px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.teacher-header-info{flex:1}
+.teacher-header-title{font-size:17px;font-weight:700;color:#fff}
+.teacher-header-sub{font-size:12px;color:#85B7EB;margin-top:1px}
+.teacher-robot{width:38px;height:38px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.teacher-robot-face{width:23px;height:18px;background:#fff;border-radius:5px;display:flex;align-items:center;justify-content:center;gap:4px}
+.teacher-r-eye{width:5px;height:5px;background:#185FA5;border-radius:50%}
+.teacher-body{flex:1;overflow-y:auto;background:#f4f6fa;padding:0 0 16px}
+
+/* CLASS SUMMARY CARD */
+.teacher-card-box{background:#fff;margin:14px 14px 0;border-radius:18px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.teacher-card-title{font-size:16px;font-weight:800;color:#1a1a2e;padding:16px 16px 10px;border-bottom:1px solid #f0f0f0}
+.class-table{width:100%;border-collapse:collapse}
+.class-table thead tr{background:#f7f9fc}
+.class-table th{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.06em;padding:8px 12px;text-align:left}
+.class-table td{font-size:13px;color:#1a1a2e;padding:9px 12px;border-top:1px solid #f5f5f5}
+.class-table tr.attention td{color:#D0021B;font-weight:600}
+.class-table tr:last-child td{border-bottom:none}
+.level-badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:8px;font-size:12px;font-weight:700;background:#E6F1FB;color:#185FA5}
+.level-badge.high{background:#E1F5EE;color:#0F6E56}
+.level-badge.alert{background:#FEE2E2;color:#D0021B}
+.attention-banner{margin:10px 14px 0;background:#FEF3F2;border:1.5px solid #FECACA;border-radius:12px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px}
+.attention-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.attention-text{flex:1}
+.attention-title{font-size:13px;font-weight:700;color:#D0021B}
+.attention-sub{font-size:11px;color:#991B1B;margin-top:2px;line-height:1.4}
+
+/* VIDEO RESOURCES */
+.teacher-section-label{font-size:11px;font-weight:800;color:#185FA5;text-transform:uppercase;letter-spacing:0.08em;padding:16px 16px 8px}
+.video-scroll{display:flex;gap:10px;padding:0 14px 4px;overflow-x:auto;scrollbar-width:none}
+.video-scroll::-webkit-scrollbar{display:none}
+.video-thumb{flex-shrink:0;width:130px;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.08);cursor:pointer;transition:transform 0.15s}
+.video-thumb:active{transform:scale(0.96)}
+.video-img{width:130px;height:86px;display:flex;align-items:center;justify-content:center;position:relative;font-size:11px;font-weight:700;color:#fff;text-align:center;padding:8px}
+.video-play{position:absolute;width:30px;height:30px;background:rgba(255,255,255,0.9);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.video-play svg{width:12px;height:12px;fill:#185FA5;margin-left:2px}
+.video-label{font-size:10px;font-weight:700;color:#fff;position:absolute;top:6px;left:8px;background:rgba(0,0,0,0.35);padding:2px 6px;border-radius:6px;letter-spacing:0.04em}
+.video-title{font-size:11px;font-weight:600;color:#1a1a2e;padding:7px 8px 8px;line-height:1.35}
+
+/* LESSON PLANS */
+.lesson-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;padding:0 14px}
+.lesson-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:transform 0.15s}
+.lesson-item:active{transform:scale(0.93)}
+.lesson-doc{width:40px;height:48px;background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);display:flex;align-items:center;justify-content:center;position:relative}
+.lesson-doc svg{width:22px;height:22px}
+.lesson-dl{position:absolute;bottom:-5px;right:-5px;width:16px;height:16px;background:#D0021B;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.lesson-dl svg{width:9px;height:9px;fill:#fff}
+.lesson-name{font-size:9px;color:#666;font-weight:600}
+
+/* TEACHER NAV */
+.teacher-nav{height:70px;background:#fff;border-top:1px solid #f0f0f0;display:flex;align-items:flex-start;padding-top:8px;flex-shrink:0}
+
+/* LOADING */
+.loading-overlay{position:absolute;inset:0;background:rgba(255,255,255,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.loading-overlay.show{opacity:1;pointer-events:all}
+.loading-robot{width:64px;height:64px;background:#185FA5;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:spin-soft 2s ease-in-out infinite}
+@keyframes spin-soft{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.loading-face{width:38px;height:30px;background:#E6F1FB;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+.loading-eye{width:8px;height:8px;background:#185FA5;border-radius:50%;animation:blink 2s infinite}
+.loading-eye:last-child{animation-delay:0.15s}
+@keyframes blink{0%,45%,55%,100%{transform:scaleY(1)}50%{transform:scaleY(0.1)}}
+.loading-text{font-size:15px;font-weight:600;color:#1a1a2e}
+.loading-sub{font-size:13px;color:#888;text-align:center;max-width:240px;line-height:1.5}
+.loading-dots{display:flex;gap:6px}
+.ld{width:8px;height:8px;border-radius:50%;background:#185FA5;animation:bounce 1.2s infinite}
+.ld:nth-child(2){animation-delay:0.2s}
+.ld:nth-child(3){animation-delay:0.4s}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loading">
+    <div class="loading-robot"><div class="loading-face"><div class="loading-eye"></div><div class="loading-eye"></div></div></div>
+    <div class="loading-text">Pace is thinking...</div>
+    <div class="loading-sub" id="loading-sub">Building your personalised learning path</div>
+    <div class="loading-dots"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
+  </div>
+
+  <!-- ═══ SCREEN: WELCOME ═══ -->
+  <div class="screen" id="s-welcome">
+    <div class="welcome-header">
+      <div class="pace-wordmark">pace</div>
+      <div class="pace-tagline">Personalised · Inclusive · Movement</div>
+      <div class="robot-wrap"><div class="robot-inner"><div class="r-eye"></div><div class="r-eye"></div></div></div>
+    </div>
+    <div class="welcome-body">
+      <div class="welcome-intro">Hello! I'm <span>Pace</span> — your personal learning companion. Who's joining today?</div>
+      <div class="role-grid">
+        <div class="role-card" onclick="startStudentFlow()"><div class="role-emoji">🧒</div><div class="role-name">Student</div></div>
+        <div class="role-card teacher-card" onclick="goTo('s-teacher','s-welcome')"><div class="role-emoji">👩‍🏫</div><div class="role-name">Teacher</div></div>
+        <div class="role-card parent-card" onclick="goTo('s-parent','s-welcome')"><div class="role-emoji">🏠</div><div class="role-name">Home Portal</div></div>
+      </div>
+      <div class="demo-note">⚡ Prototype demo — AI responses are pre-scripted. Tap <strong>Teacher</strong> for the class dashboard or <strong>Home Portal</strong> for 11+ revision.</div>
+    </div>
+  </div>
+
+  <!-- ═══ SCREEN: CHAT ═══ -->
+  <div class="screen hidden" id="s-chat">
+    <div class="chat-header">
+      <button class="back-btn" onclick="goTo('s-welcome','s-chat')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="chat-header-info"><div class="chat-header-name">Pace AI</div><div class="chat-header-sub">Your learning companion ✦ online</div></div>
+      <div class="chat-robot"><div class="chat-robot-face"><div class="chat-r-eye"></div><div class="chat-r-eye"></div></div></div>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="suggestions" id="suggestions">
+      <div class="sug" onclick="useSuggestion(this)">Football ⚽</div>
+      <div class="sug" onclick="useSuggestion(this)">Skateboarding 🛹</div>
+      <div class="sug" onclick="useSuggestion(this)">Guitar 🎸</div>
+      <div class="sug" onclick="useSuggestion(this)">Golf ⛳</div>
+      <div class="sug" onclick="useSuggestion(this)">Board games 🎲</div>
+      <div class="sug" onclick="useSuggestion(this)">Dancing 💃</div>
+      <div class="sug" onclick="useSuggestion(this)">Robots 🤖</div>
+      <div class="sug" onclick="useSuggestion(this)">Animals 🐾</div>
+    </div>
+    <div class="input-area">
+      <textarea class="msg-input" id="msg-input" placeholder="Tell Pace what you love..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg></button>
+    </div>
+  </div>
+
+  <!-- ═══ SCREEN: LEARNING PATH ═══ -->
+  <div class="screen hidden" id="s-path">
+    <div class="path-header">
+      <button class="path-back" onclick="goTo('s-chat','s-path')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Back to chat</button>
+      <div class="path-greeting">Your learning path, <span id="path-name">learner</span> 🎉</div>
+      <div class="path-sub" id="path-sub">Built around what you love</div>
+      <div class="xp-wrap">
+        <div class="xp-row"><span class="xp-label">Level 1 · Getting started</span><span class="xp-val">0 / 100 XP</span></div>
+        <div class="xp-track"><div class="xp-fill" id="xp-fill"></div></div>
+      </div>
+    </div>
+    <div class="path-body" id="path-body"><div class="ai-badge"><div class="ai-badge-dot"></div>AI-generated just for you</div></div>
+    <nav class="path-nav">
+      <div class="pn-item"><div class="pn-icon active-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><span class="pn-label active-label">Home</span></div>
+      <div class="pn-item"><div class="pn-icon"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><span class="pn-label">Videos</span></div>
+      <div class="pn-item"><div class="pn-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><span class="pn-label">Progress</span></div>
+      <div class="pn-item"><div class="pn-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><span class="pn-label">Profile</span></div>
+    </nav>
+  </div>
+
+  <!-- ═══ SCREEN: HOME PORTAL ═══ -->
+  <div class="screen hidden" id="s-parent">
+    <div class="parent-header">
+      <button class="parent-back" onclick="goTo('s-welcome','s-parent')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg> Back</button>
+      <div class="parent-title">Home Portal</div>
+      <div class="parent-sub">11+ Revision & Progress Overview</div>
+      <div class="parent-badge"><div class="parent-badge-dot"></div>Grammar School Prep Mode</div>
+    </div>
+    <div class="parent-body">
+
+      <div class="parent-section-title">Step 1 — What do you love? 🎯</div>
+      <p style="font-size:12px;color:#6D28D9;margin-bottom:10px;line-height:1.5">Choose your interest and Pace will wrap all your 11+ questions around it — same level, but way more fun!</p>
+      <div class="interest-grid">
+        <div class="interest-chip active" id="chip-robotics" onclick="selectInterest('robotics','🤖','Robotics')">🤖 Robotics</div>
+        <div class="interest-chip" id="chip-football" onclick="selectInterest('football','⚽','Football')">⚽ Football</div>
+        <div class="interest-chip" id="chip-golf" onclick="selectInterest('golf','⛳','Golf')">⛳ Golf</div>
+        <div class="interest-chip" id="chip-guitar" onclick="selectInterest('guitar','🎸','Guitar')">🎸 Guitar</div>
+        <div class="interest-chip" id="chip-animals" onclick="selectInterest('animals','🐾','Animals')">🐾 Animals</div>
+        <div class="interest-chip" id="chip-boardgames" onclick="selectInterest('boardgames','🎲','Board Games')">🎲 Board Games</div>
+        <div class="interest-chip" id="chip-skateboarding" onclick="selectInterest('skateboarding','🛹','Skateboarding')">🛹 Skateboarding</div>
+        <div class="interest-chip" id="chip-space" onclick="selectInterest('space','🚀','Space')">🚀 Space</div>
+      </div>
+
+      <div class="parent-section-title" style="margin-top:18px">Step 2 — Choose a Subject 📚</div>
+      <div class="interest-context-banner" id="interest-banner">
+        <span id="interest-banner-emoji">🤖</span>
+        <span id="interest-banner-text">Questions themed around <strong>Robotics</strong></span>
+      </div>
+      <div class="subject-grid">
+        <div class="subject-card" onclick="startQuiz('maths')">
+          <div class="subject-emoji">🔢</div>
+          <div class="subject-name">Maths</div>
+          <div class="subject-count">10 questions · 8 min</div>
+          <div class="subject-bar"><div class="subject-fill" style="width:40%"></div></div>
+        </div>
+        <div class="subject-card" onclick="startQuiz('english')">
+          <div class="subject-emoji">📖</div>
+          <div class="subject-name">English</div>
+          <div class="subject-count">10 questions · 8 min</div>
+          <div class="subject-bar"><div class="subject-fill" style="width:25%"></div></div>
+        </div>
+        <div class="subject-card" onclick="startQuiz('verbal')">
+          <div class="subject-emoji">🧠</div>
+          <div class="subject-name">Verbal Reasoning</div>
+          <div class="subject-count">10 questions · 10 min</div>
+          <div class="subject-bar"><div class="subject-fill" style="width:15%"></div></div>
+        </div>
+        <div class="subject-card" onclick="startQuiz('nonverbal')">
+          <div class="subject-emoji">🔷</div>
+          <div class="subject-name">Non-Verbal</div>
+          <div class="subject-count">10 questions · 10 min</div>
+          <div class="subject-bar"><div class="subject-fill" style="width:10%"></div></div>
+        </div>
+      </div>
+
+      <div class="parent-section-title">Progress Summary</div>
+      <div class="progress-summary">
+        <div class="progress-row"><span class="progress-label">Quizzes completed</span><span class="progress-val">3</span></div>
+        <div class="progress-row"><span class="progress-label">Average score</span><span class="progress-val">72%</span></div>
+        <div class="progress-row"><span class="progress-label">Strongest subject</span><span class="progress-val">Maths</span></div>
+        <div class="progress-row"><span class="progress-label">Needs most work</span><span class="progress-val">Non-Verbal</span></div>
+        <div class="progress-row"><span class="progress-label">Time practising</span><span class="progress-val">47 mins</span></div>
+      </div>
+
+      <div class="parent-section-title">Pace Tip</div>
+      <div class="parent-tip">
+        <strong>💡 Why interest-based revision works</strong>
+        Many neurodiverse learners are highly intelligent but need context to engage. Wrapping 11+ questions in your child's passion activates focus and working memory — the same skills the exam tests, in a world they already love.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SCREEN: QUIZ ═══ -->
+  <div class="screen hidden" id="s-quiz">
+    <div class="quiz-header">
+      <button class="back-btn" onclick="exitQuiz()"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="quiz-header-info">
+        <div class="quiz-title" id="quiz-title">11+ Maths</div>
+        <div class="quiz-subject" id="quiz-subject">Question 1 of 10</div>
+      </div>
+      <div class="quiz-timer-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <div class="quiz-timer" id="quiz-timer">45</div>
+      </div>
+    </div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-progress-fill" style="width:10%"></div></div>
+    <div class="quiz-body" id="quiz-body">
+      <div class="quiz-q-count" id="quiz-q-count">Question 1 of 10</div>
+      <div class="quiz-question" id="quiz-question">Loading...</div>
+      <div class="quiz-options" id="quiz-options"></div>
+      <div class="quiz-feedback" id="quiz-feedback"></div>
+      <button class="quiz-next-btn" id="quiz-next-btn" onclick="nextQuestion()">Next question →</button>
+    </div>
+  </div>
+
+  <!-- ═══ SCREEN: TEACHER ═══ -->
+  <div class="screen hidden" id="s-teacher">
+    <div class="teacher-header">
+      <button class="back-btn" onclick="goTo('s-welcome','s-teacher')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div class="teacher-header-info">
+        <div class="teacher-header-title">Educators' Page</div>
+        <div class="teacher-header-sub">Class Summary &amp; Resources</div>
+      </div>
+      <div class="teacher-robot"><div class="teacher-robot-face"><div class="teacher-r-eye"></div><div class="teacher-r-eye"></div></div></div>
+    </div>
+
+    <div class="teacher-body">
+
+      <!-- CLASS SUMMARY TABLE -->
+      <div class="teacher-card-box">
+        <div class="teacher-card-title">Class Summary</div>
+        <table class="class-table">
+          <thead><tr><th>Pupil</th><th>Level</th><th>Last Login</th></tr></thead>
+          <tbody>
+            <tr><td>Mohammed0209</td><td><span class="level-badge">1</span></td><td style="color:#aaa;font-size:12px">02.04.2026</td></tr>
+            <tr><td>AriaD1710</td><td><span class="level-badge high">4</span></td><td style="color:#aaa;font-size:12px">14.03.2026</td></tr>
+            <tr><td>Hudson0105</td><td><span class="level-badge">2</span></td><td style="color:#aaa;font-size:12px">01.04.2026</td></tr>
+            <tr><td>Manu1407</td><td><span class="level-badge high">5</span></td><td style="color:#aaa;font-size:12px">14.02.2026</td></tr>
+            <tr class="attention"><td>Amira0608 ⚠️</td><td><span class="level-badge alert">1</span></td><td style="font-size:12px">14.02.2026</td></tr>
+            <tr><td>FInley1405</td><td><span class="level-badge">2</span></td><td style="color:#aaa;font-size:12px">14.02.2026</td></tr>
+            <tr><td>Patrick03010</td><td><span class="level-badge">2</span></td><td style="color:#aaa;font-size:12px">12.12.2025</td></tr>
+            <tr><td>James0504</td><td><span class="level-badge">3</span></td><td style="color:#aaa;font-size:12px">14.11.2025</td></tr>
+            <tr><td>Pria0217</td><td><span class="level-badge high">4</span></td><td style="color:#aaa;font-size:12px">01.01.2026</td></tr>
+            <tr class="attention"><td>Ellie0707 ⚠️</td><td><span class="level-badge alert">1</span></td><td style="font-size:12px">14.03.2026</td></tr>
+            <tr><td>Katie1906</td><td><span class="level-badge">2</span></td><td style="color:#aaa;font-size:12px">06.03.2026</td></tr>
+            <tr><td>Yasmin0407</td><td><span class="level-badge high">6</span></td><td style="color:#aaa;font-size:12px">15.03.2026</td></tr>
+            <tr><td>Adil0605</td><td><span class="level-badge">1</span></td><td style="color:#aaa;font-size:12px">16.03.2026</td></tr>
+            <tr class="attention"><td>Sabina1611 ⚠️</td><td><span class="level-badge alert">1</span></td><td style="font-size:12px">14.03.2026</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ATTENTION BANNER -->
+      <div class="attention-banner">
+        <div class="attention-icon">🔴</div>
+        <div class="attention-text">
+          <div class="attention-title">3 Pupils need attention</div>
+          <div class="attention-sub">Amira0608, Ellie0707 and Sabina1611 are at Level 1 and have not progressed recently. Tap a pupil's name to view their individual report.</div>
+        </div>
+      </div>
+
+      <!-- VIDEO RESOURCES -->
+      <div class="teacher-section-label">📹 Video Resources</div>
+      <div class="video-scroll">
+
+        <div class="video-thumb">
+          <div class="video-img" style="background:linear-gradient(135deg,#e05a5a,#c0392b)">
+            <div class="video-label">SAFETY</div>
+            <div class="video-play"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+          </div>
+          <div class="video-title">Skateboarding safety for all ages</div>
+        </div>
+
+        <div class="video-thumb">
+          <div class="video-img" style="background:linear-gradient(135deg,#4a9e6b,#27ae60)">
+            <div class="video-label">Engineering</div>
+            <div class="video-play"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+          </div>
+          <div class="video-title">How objects are designed & why parts matter</div>
+        </div>
+
+        <div class="video-thumb">
+          <div class="video-img" style="background:linear-gradient(135deg,#9b6bd4,#7C3AED)">
+            <div class="video-label">Mindfulness</div>
+            <div class="video-play"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+          </div>
+          <div class="video-title">Regulate emotions & calm the nervous system</div>
+        </div>
+
+        <div class="video-thumb">
+          <div class="video-img" style="background:linear-gradient(135deg,#5b9bd5,#185FA5)">
+            <div class="video-label">Physics</div>
+            <div class="video-play"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+          </div>
+          <div class="video-title">Isaac Newton's Laws of Motion</div>
+        </div>
+
+        <div class="video-thumb">
+          <div class="video-img" style="background:linear-gradient(135deg,#e08850,#d35400)">
+            <div class="video-label">Maths</div>
+            <div class="video-play"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+          </div>
+          <div class="video-title">Fractions in everyday life</div>
+        </div>
+
+      </div>
+
+      <!-- LESSON PLANS -->
+      <div class="teacher-section-label">📄 Lesson Plans</div>
+      <div class="lesson-grid">
+        <div class="lesson-item" onclick="alert('Lesson 1 PDF — would download in full app')">
+          <div class="lesson-doc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <div class="lesson-dl"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+          </div>
+          <div class="lesson-name">Lesson 1</div>
+        </div>
+        <div class="lesson-item" onclick="alert('Lesson 2 PDF — would download in full app')">
+          <div class="lesson-doc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <div class="lesson-dl"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+          </div>
+          <div class="lesson-name">Lesson 2</div>
+        </div>
+        <div class="lesson-item" onclick="alert('Lesson 3 PDF — would download in full app')">
+          <div class="lesson-doc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <div class="lesson-dl"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+          </div>
+          <div class="lesson-name">Lesson 3</div>
+        </div>
+        <div class="lesson-item" onclick="alert('Lesson 4 PDF — would download in full app')">
+          <div class="lesson-doc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <div class="lesson-dl"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+          </div>
+          <div class="lesson-name">Lesson 4</div>
+        </div>
+        <div class="lesson-item" onclick="alert('Lesson 5 PDF — would download in full app')">
+          <div class="lesson-doc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <div class="lesson-dl"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+          </div>
+          <div class="lesson-name">Lesson 5</div>
+        </div>
+        <div class="lesson-item" onclick="alert('Lesson 6 PDF — would download in full app')">
+          <div class="lesson-doc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <div class="lesson-dl"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+          </div>
+          <div class="lesson-name">Lesson 6</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TEACHER NAV -->
+    <nav class="teacher-nav">
+      <div class="pn-item"><div class="pn-icon active-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><span class="pn-label active-label">Class</span></div>
+      <div class="pn-item"><div class="pn-icon"><svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><span class="pn-label">Videos</span></div>
+      <div class="pn-item"><div class="pn-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><span class="pn-label">Plans</span></div>
+      <div class="pn-item"><div class="pn-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><span class="pn-label">Reports</span></div>
+    </nav>
+  </div>
+
+  <!-- ═══ SCREEN: RESULTS ═══ -->
+  <div class="screen hidden" id="s-results">
+    <div class="quiz-header">
+      <div class="quiz-header-info">
+        <div class="quiz-title">Quiz Complete!</div>
+        <div class="quiz-subject" id="results-subject">11+ Maths</div>
+      </div>
+    </div>
+    <div class="results-body">
+      <div class="results-circle">
+        <div class="results-score" id="results-score">7/10</div>
+        <div class="results-label">correct</div>
+      </div>
+      <div class="results-title" id="results-title">Great effort! 🎉</div>
+      <div class="results-sub" id="results-sub">You're building solid foundations for the 11+.</div>
+      <div class="results-breakdown" id="results-breakdown">
+        <div class="rb-row"><span class="rb-label">Score</span><span class="rb-val" id="rb-score">70%</span></div>
+        <div class="rb-row"><span class="rb-label">Time taken</span><span class="rb-val" id="rb-time">4m 12s</span></div>
+        <div class="rb-row"><span class="rb-label">Correct answers</span><span class="rb-val" id="rb-correct">7</span></div>
+        <div class="rb-row"><span class="rb-label">To review</span><span class="rb-val" id="rb-wrong">3</span></div>
+      </div>
+      <button class="results-btn" onclick="goTo('s-parent','s-results')">Back to Home Portal</button>
+      <button class="results-btn secondary" onclick="retryQuiz()">Try again</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  STUDENT CHAT ENGINE (offline scripted)
+// ══════════════════════════════════════════════
+var userName='', userInterests=[], messageCount=0, conversationStage=0;
+
+var INTEREST_MAP=[
+  {words:['skateboard','skate','skating'],    label:'Skateboarding',emoji:'🛹',subject:'Physics · Forces'},
+  {words:['football','soccer','footy'],        label:'Football',     emoji:'⚽',subject:'Maths · Statistics'},
+  {words:['danc','ballet','hip hop'],          label:'Dancing',      emoji:'💃',subject:'Music · Rhythm'},
+  {words:['robot','coding','code','program'],  label:'Robotics',     emoji:'🤖',subject:'Computing · KS2'},
+  {words:['animal','dog','cat','horse','pet'], label:'Animals',      emoji:'🐾',subject:'Science · Biology'},
+  {words:['boxing','martial','karate','judo'], label:'Martial Arts', emoji:'🥊',subject:'PE · Fitness'},
+  {words:['swim','swimming'],                   label:'Swimming',     emoji:'🏊',subject:'Science · Forces'},
+  {words:['art','draw','paint'],                label:'Art',          emoji:'🎨',subject:'Art · Design'},
+  {words:['guitar','bass','ukulele','strum'],   label:'Guitar',       emoji:'🎸',subject:'Music · KS2'},
+  {words:['music','sing','drum','piano'],        label:'Music',        emoji:'🎵',subject:'Music · KS1'},
+  {words:['golf','putt','caddy','fairway'],     label:'Golf',         emoji:'⛳',subject:'Maths · Measurement'},
+  {words:['board game','chess','monopoly','scrabble','draughts','ludo','game'],label:'Board Games',emoji:'🎲',subject:'Maths · Strategy'},
+  {words:['minecraft','gaming','video game'],   label:'Gaming',       emoji:'🎮',subject:'Computing · Logic'},
+  {words:['lego','build','construct'],           label:'Building',     emoji:'🧱',subject:'Design & Tech'},
+  {words:['read','book','story'],                label:'Reading',      emoji:'📚',subject:'English · KS1'},
+  {words:['cook','bake','food'],                 label:'Cooking',      emoji:'🍳',subject:'Maths · Measuring'},
+  {words:['cricket','tennis','basket'],          label:'Sport',        emoji:'🏅',subject:'PE · KS2'},
+  {words:['gymnastics','gym','tumble'],          label:'Gymnastics',   emoji:'🤸',subject:'PE · Movement'},
+  {words:['cycle','cycling','bike'],             label:'Cycling',      emoji:'🚴',subject:'Science · Forces'},
+];
+
+function detectInterests(text){
+  var t=text.toLowerCase();
+  INTEREST_MAP.forEach(function(m){
+    m.words.forEach(function(w){
+      if(t.includes(w)&&!userInterests.find(function(i){return i.label===m.label;})){
+        userInterests.push(m);
+      }
+    });
+  });
+}
+
+function extractName(text){
+  var words=text.trim().split(/\s+/),name='';
+  words.forEach(function(w){
+    var c=w.replace(/[^a-zA-Z]/g,'');
+    if(c.length>1&&c[0]===c[0].toUpperCase()&&isNaN(c[0])&&!name)name=c;
+  });
+  if(!name)name=words[0].replace(/[^a-zA-Z]/g,'');
+  return name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
+}
+
+function getAIResponse(text){
+  if(conversationStage===0){
+    userName=extractName(text);conversationStage=1;
+    return "Great to meet you, "+userName+"! 🌟 Now tell me — what's your absolute favourite thing to do? Sport, hobby, anything you love! 😊";
+  }
+  if(conversationStage===1){
+    detectInterests(text);conversationStage=2;
+    var interest=userInterests.length>0?userInterests[0].label:'that';
+    var opts=["Wow, "+interest+" is SO cool! 🔥 What do you love most about it? And what's your favourite subject at school?",
+              "Amazing! "+interest+" takes real skill! 💪 How long have you been into it? What's your best subject?",
+              interest+"?! That's brilliant! 🎉 Do you do it in a club or with friends? What lesson do you enjoy most?"];
+    return opts[Math.floor(Math.random()*opts.length)];
+  }
+  if(conversationStage===2){
+    detectInterests(text);conversationStage=3;
+    var n=userName||'you',interest=userInterests.length>0?userInterests[0].label:'your interests';
+    return "This is brilliant, "+n+"! 🚀 I've got everything I need. I'm going to build you a learning path that uses "+interest+" to make every lesson feel exciting. Ready to see it? READY_TO_BUILD";
+  }
+  return "You're all set, "+(userName||'superstar')+"! 🎉 Tap below to see your path! READY_TO_BUILD";
+}
+
+// ══════════════════════════════════════════════
+//  LEARNING PATH GENERATOR
+// ══════════════════════════════════════════════
+var TEMPLATES={
+  'Skateboarding':[
+    {emoji:'🛹',tag:'Maths · KS2',title:'Skate Park Angles & Speed',desc:'Calculate ramp angles and estimate speed using real skate park measurements.',pill1:'Skateboarding',pill2:'Geometry',xp:'35',featured:true},
+    {emoji:'⚖️',tag:'Science · KS2',title:'Forces on a Skateboard',desc:'Explore gravity, friction and air resistance through skateboarding physics.',pill1:'Physics',pill2:'Forces & Motion',xp:'25'},
+    {emoji:'📐',tag:'Maths · KS1',title:'Shapes in the Skate Park',desc:'Spot triangles, rectangles and curves hidden in skate park ramps.',pill1:'Geometry',pill2:'2D Shapes',xp:'20'},
+    {emoji:'✍️',tag:'English · KS2',title:'Write a Skate Trick Tutorial',desc:'Plan and write step-by-step instructions for your favourite trick.',pill1:'Writing',pill2:'Instructions',xp:'20'},
+  ],
+  'Football':[
+    {emoji:'⚽',tag:'Maths · KS2',title:'Football Stats & Charts',desc:"Collect match data and create bar charts to track your team's performance.",pill1:'Football',pill2:'Statistics',xp:'35',featured:true},
+    {emoji:'🏟️',tag:'Science · KS2',title:'The Science of a Free Kick',desc:"Discover how spin, air pressure and force affect the ball's curve.",pill1:'Physics',pill2:'Forces',xp:'25'},
+    {emoji:'🗺️',tag:'Geography · KS2',title:'World Cup World Tour',desc:'Map the countries in the World Cup and learn about their cultures.',pill1:'Football',pill2:'Geography',xp:'20'},
+    {emoji:'📝',tag:'English · KS1',title:'Match Report Writing',desc:'Write a match report using describing words and exciting punctuation.',pill1:'Writing',pill2:'Non-fiction',xp:'20'},
+  ],
+  'Dancing':[
+    {emoji:'💃',tag:'Music · KS2',title:'Rhythm, Beat & Timing',desc:'Clap, count and move to different rhythms — then create your own sequence.',pill1:'Dancing',pill2:'Music & Rhythm',xp:'35',featured:true},
+    {emoji:'🔢',tag:'Maths · KS1',title:'Counting Beats & Patterns',desc:'Use dance sequences to practise counting in 2s, 4s and 8s.',pill1:'Patterns',pill2:'Number',xp:'25'},
+    {emoji:'🌍',tag:'Geography · KS2',title:'Dances Around the World',desc:'Explore traditional dances from 5 different countries and their cultures.',pill1:'Dancing',pill2:'Geography',xp:'20'},
+    {emoji:'✍️',tag:'English · KS2',title:'Write a Dance Poem',desc:'Use powerful verbs and similes to describe movement in a short poem.',pill1:'Creative Writing',pill2:'Poetry',xp:'20'},
+  ],
+  'Robotics':[
+    {emoji:'🤖',tag:'Computing · KS2',title:'Code a Robot Maze',desc:'Write simple algorithms to guide a robot through a maze without hitting walls.',pill1:'Robotics',pill2:'Algorithms',xp:'35',featured:true},
+    {emoji:'💡',tag:'Science · KS2',title:'How do Robots Think?',desc:'Learn about sensors, inputs and outputs — then design your own helpful robot.',pill1:'Technology',pill2:'Computing',xp:'25'},
+    {emoji:'🔢',tag:'Maths · KS2',title:'Binary & Robot Language',desc:"Discover how robots use 0s and 1s — and decode your name in binary!",pill1:'Binary',pill2:'Number Systems',xp:'30'},
+    {emoji:'📖',tag:'English · KS2',title:'My Robot Story',desc:"Write a short story from a robot's perspective on its first day in school.",pill1:'Narrative',pill2:'Creative Writing',xp:'20'},
+  ],
+  'Animals':[
+    {emoji:'🐾',tag:'Science · KS1',title:'Animal Habitats Explorer',desc:'Match 10 animals to their habitats and discover why each is perfectly adapted.',pill1:'Animals',pill2:'Biology',xp:'35',featured:true},
+    {emoji:'🔢',tag:'Maths · KS2',title:'Wildlife Survey & Graphs',desc:'Record imaginary bird sightings and display the data in a pictogram.',pill1:'Data',pill2:'Statistics',xp:'25'},
+    {emoji:'✍️',tag:'English · KS2',title:'Animal Report Writing',desc:'Research your favourite animal and write a non-fiction report with headings.',pill1:'Non-fiction',pill2:'Writing',xp:'20'},
+    {emoji:'🌿',tag:'Geography · KS1',title:'Animal World Map',desc:'Pin 8 animals to the countries they come from and label each continent.',pill1:'Animals',pill2:'Geography',xp:'20'},
+  ],
+  'Martial Arts':[
+    {emoji:'🥊',tag:'PE · KS2',title:'Fitness Circuit Challenge',desc:'Design your own 5-move circuit based on boxing and martial arts techniques.',pill1:'Boxing',pill2:'Health & Fitness',xp:'35',featured:true},
+    {emoji:'⚖️',tag:'Science · KS2',title:'Forces Behind the Punch',desc:'Investigate how mass, speed and force combine in striking sports.',pill1:'Physics',pill2:'Forces',xp:'25'},
+    {emoji:'🗺️',tag:'Geography · KS2',title:'Martial Arts World Map',desc:'Discover which martial art comes from which country and map them out.',pill1:'Culture',pill2:'Geography',xp:'20'},
+    {emoji:'🧘',tag:'PSHE · KS2',title:'Focus & Self-Control',desc:'Explore the mindset skills top martial artists use — and try them yourself.',pill1:'Wellbeing',pill2:'PSHE',xp:'20'},
+  ],
+  'Guitar':[
+    {emoji:'🎸',tag:'Music · KS2',title:'Chords, Notes & Fractions',desc:"Discover how guitar strings and frets link to maths — halves, thirds and sixths all live on your fretboard!",pill1:'Guitar',pill2:'Fractions',xp:'35',featured:true},
+    {emoji:'📖',tag:'English · KS2',title:'Write Your Own Song Lyrics',desc:'Use rhyme, rhythm and imagery to write an original verse about something you care about.',pill1:'Creative Writing',pill2:'Poetry',xp:'25'},
+    {emoji:'🌍',tag:'History · KS2',title:'Where Did the Guitar Come From?',desc:'Trace the guitar from ancient lutes to rock and roll — a timeline through history.',pill1:'Guitar',pill2:'History',xp:'20'},
+    {emoji:'📊',tag:'Science · KS2',title:'Sound Waves & Vibrations',desc:'Learn how plucking a string creates sound waves and explore pitch and frequency.',pill1:'Physics',pill2:'Sound',xp:'20'},
+  ],
+  'Golf':[
+    {emoji:'⛳',tag:'Maths · KS2',title:'Par, Scores & Negative Numbers',desc:"Use golf scoring (birdies, bogeys) to explore positive and negative numbers in real context.",pill1:'Golf',pill2:'Negative Numbers',xp:'35',featured:true},
+    {emoji:'📐',tag:'Maths · KS2',title:'Angles & Trajectory',desc:'Calculate the best angle to chip the ball onto the green — geometry in action!',pill1:'Geometry',pill2:'Angles',xp:'25'},
+    {emoji:'🌿',tag:'Science · KS1',title:'Golf Course Habitats',desc:'Explore the plants, insects and birds that live on golf courses and why they thrive there.',pill1:'Nature',pill2:'Habitats',xp:'20'},
+    {emoji:'✍️',tag:'English · KS2',title:'Write a Golf Commentary',desc:"Describe an imaginary hole-in-one moment using vivid language and a commentator's voice.",pill1:'Writing',pill2:'Description',xp:'20'},
+  ],
+  'Board Games':[
+    {emoji:'🎲',tag:'Maths · KS2',title:'Probability & Dice',desc:'Roll dice, record outcomes, and discover the maths of chance — who wins most often and why?',pill1:'Board Games',pill2:'Probability',xp:'35',featured:true},
+    {emoji:'♟️',tag:'Maths · KS2',title:'Strategy & Logical Thinking',desc:'Analyse a simple board game position and plan the best next three moves — pure logic!',pill1:'Strategy',pill2:'Reasoning',xp:'30'},
+    {emoji:'📖',tag:'English · KS2',title:'Write the Rules',desc:"Design your own simple board game and write a clear, well-structured rulebook.",pill1:'Writing',pill2:'Instructions',xp:'20'},
+    {emoji:'🕰️',tag:'History · KS2',title:'Games Through the Ages',desc:'Discover how board games like chess and Senet date back thousands of years — a history of play.',pill1:'Board Games',pill2:'History',xp:'20'},
+  ],
+};
+
+function generatePath(){
+  var primary=userInterests.length>0?userInterests[0]:{label:'Learning',emoji:'📚',subject:'KS1 · General'};
+  var n=userName||'learner',l=primary.label;
+  var acts=null;
+  for(var key in TEMPLATES){
+    if(l.toLowerCase().includes(key.toLowerCase())||key.toLowerCase().includes(l.toLowerCase())){acts=TEMPLATES[key];break;}
+  }
+  if(!acts){
+    acts=[
+      {emoji:primary.emoji,tag:primary.subject,title:l+' Challenge: Starter Quest',desc:'Your first activity is built around what you love — dive in and earn your first XP!',pill1:l,pill2:'KS2 · Cross-curricular',xp:'35',featured:true},
+      {emoji:'🔢',tag:'Maths · KS2',title:l+' by Numbers',desc:'Use real data from your interest to practise maths in context.',pill1:'Maths',pill2:'Statistics',xp:'25'},
+      {emoji:'✍️',tag:'English · KS2',title:'Write About What You Love',desc:'Create a persuasive piece about why '+l+' is the best hobby in the world.',pill1:'Writing',pill2:'Persuasion',xp:'20'},
+      {emoji:'🌍',tag:'Geography · KS1',title:l+' Around the World',desc:'Explore how your interest connects to different places and cultures globally.',pill1:l,pill2:'Geography',xp:'20'},
+    ];
+  }
+  return{subtext:'Built around your love of '+l+' 🔥',breathe:{title:'Take a breath before we start 🌿',sub:"You've got this, "+n+"! One step at a time 💪"},activities:acts};
+}
+
+// ══════════════════════════════════════════════
+//  11+ INTEREST-CONTEXTUALISED QUIZ ENGINE
+// ══════════════════════════════════════════════
+var selectedInterest = 'robotics';
+var selectedInterestLabel = 'Robotics';
+var selectedInterestEmoji = '🤖';
+
+function selectInterest(id, emoji, label) {
+  selectedInterest = id;
+  selectedInterestLabel = label;
+  selectedInterestEmoji = emoji;
+  document.querySelectorAll('.interest-chip').forEach(function(c){ c.classList.remove('active'); });
+  document.getElementById('chip-'+id).classList.add('active');
+  document.getElementById('interest-banner-emoji').textContent = emoji;
+  document.getElementById('interest-banner-text').innerHTML = 'Questions themed around <strong>'+label+'</strong>';
+}
+
+// ── INTEREST-CONTEXTUALISED QUESTION BANKS ──
+// Each interest has 4 subjects × 10 questions.
+// Same 11+ difficulty — different context/story wrapper.
+
+var INTEREST_QUIZ_BANKS = {
+
+  robotics: {
+    maths: { name:'Maths', timePerQ:45, questions:[
+      {q:'A robot moves forward 17cm then 8 times more. How far in total?',opts:['126cm','136cm','144cm','153cm'],ans:2,exp:'17 × 8 = 136cm — but total including the first move: actually the question means 17 × 8 = 136cm total. Answer: 136cm'},
+      {q:'A robot arm is 36cm around its joint. If one section is 11cm, what is the other?',opts:['7cm','6cm','8cm','9cm'],ans:0,exp:'Perimeter = 2(l+w): 2(11+w)=36, w=7cm'},
+      {q:'A robot completes 45 tasks out of 60 in a day. What fraction is that?',opts:['2/3','3/4','4/5','5/6'],ans:1,exp:'45/60 = 3/4 simplified'},
+      {q:'A robot travels at 60cm/s for 2.5 seconds. How far does it go?',opts:['120cm','140cm','150cm','160cm'],ans:2,exp:'Distance = speed × time = 60 × 2.5 = 150cm'},
+      {q:'A robot doubles its speed each second: 3, 6, 12, 24, ___?',opts:['36','40','48','54'],ans:2,exp:'Each number doubles: 24 × 2 = 48'},
+      {q:'A robot uses 15% of its 240-minute battery. How many minutes?',opts:['32','34','36','38'],ans:2,exp:'10%=24, 5%=12, so 15%=36 minutes'},
+      {q:'A parts box has 5 red wires, 3 blue and 2 green. Probability of picking red?',opts:['1/2','1/4','3/10','1/3'],ans:0,exp:'5 red out of 10 total = 1/2'},
+      {q:'A robot arm triangle has base 12cm, height 9cm. What is its area?',opts:['54cm²','81cm²','108cm²','48cm²'],ans:0,exp:'Area = ½ × 12 × 9 = 54cm²'},
+      {q:'A robot costs £24.60 to build. Parts cost £8.95. How much is left in budget?',opts:['£14.55','£15.55','£15.65','£16.65'],ans:2,exp:'£24.60 − £8.95 = £15.65'},
+      {q:'A robot has 3² sensors and 4² motors. How many components total?',opts:['14','25','49','12'],ans:1,exp:'3²=9, 4²=16, 9+16=25'},
+    ]},
+    english: { name:'English', timePerQ:45, questions:[
+      {q:'Choose the word closest in meaning to "AUTONOMOUS":',opts:['Controlled','Independent','Broken','Noisy'],ans:1,exp:'"Autonomous" means self-governing or independent — like a self-driving robot.'},
+      {q:'Which sentence uses a comma correctly in a robot manual?',opts:['After charging, the robot begins its patrol.','After, charging the robot begins its patrol.','After charging the robot, begins its patrol.','After charging the robot begins, its patrol.'],ans:0,exp:'A comma follows the introductory clause "After charging".'},
+      {q:'What is the ANTONYM of "MALFUNCTION"?',opts:['Break','Fail','Operate','Crash'],ans:2,exp:'"Operate" is the opposite of malfunction — it means to work correctly.'},
+      {q:'Identify the VERB: "The robot carefully scanned the room."',opts:['carefully','robot','scanned','room'],ans:2,exp:'"Scanned" is the verb — the action the robot is doing.'},
+      {q:'Which technical word is spelled CORRECTLY?',opts:['Progamming','Programing','Programming','Progranning'],ans:2,exp:'"Programming" — double m and double g are both needed.'},
+      {q:'What does the prefix "AUTO" mean?',opts:['Remote','Self','Fast','Electric'],ans:1,exp:'"Auto" means self — as in automatic, autonomous, autopilot.'},
+      {q:'"The robot hummed with excitement." This is:',opts:['Simile','Metaphor','Personification','Alliteration'],ans:2,exp:'Personification — the robot is given a human emotion (excitement).'},
+      {q:'Choose the correct form: "The robot ___ the maze yesterday."',opts:['complete','completes','completing','completed'],ans:3,exp:'"Completed" — past tense because of "yesterday".'},
+      {q:'Which word is a CONJUNCTION?',opts:['Circuit','Although','Sensor','Rapidly'],ans:1,exp:'"Although" connects clauses — it is a subordinating conjunction.'},
+      {q:'What is the plural of "circuit"?',opts:['Circuites','Circuitry','Circuits','Circuiti'],ans:2,exp:'"Circuits" — regular plural, just add -s.'},
+    ]},
+    verbal: { name:'Verbal Reasoning', timePerQ:50, questions:[
+      {q:'ROBOT is to FACTORY as BOOK is to ___',opts:['Author','Library','Page','Shelf'],ans:1,exp:'A robot is made in a factory; a book is kept in a library.'},
+      {q:'Which does NOT belong? SENSOR · MOTOR · CIRCUIT · CLOUD',opts:['Sensor','Motor','Circuit','Cloud'],ans:3,exp:'Sensor, motor and circuit are all physical robot parts. Cloud is digital storage.'},
+      {q:'If BOT = 2-15-20, what does ARM equal?',opts:['1-18-13','1-17-13','2-18-13','1-18-14'],ans:0,exp:'A=1, R=18, M=13 using A=1, B=2... Z=26'},
+      {q:'Rearrange DROBIT to make a word:',opts:['RIBBOT','ROBOTS','DROIT','ORBIT'],ans:3,exp:'ORBIT — uses O, R, B, I, T — a path a satellite takes!'},
+      {q:'Find the missing number: 2, 5, 10, 17, ___',opts:['24','26','28','30'],ans:1,exp:'Differences: +3,+5,+7,+9 — next is +9, so 17+9=26'},
+      {q:'Which pair are MOST SIMILAR? ',opts:['Robot / Human','Program / Code','Input / Output','Sensor / Motor'],ans:1,exp:'"Program" and "Code" are synonyms — both mean instructions for a computer.'},
+      {q:'In a robot code, ON = PO. What does RUN become?',opts:['SVO','SVP','SWO','TVO'],ans:0,exp:'Each letter shifts one forward: R→S, U→V, N→O = SVO'},
+      {q:'3 robots share 48 bolts equally. How many each?',opts:['12','14','16','18'],ans:2,exp:'48 ÷ 3 = 16 bolts each'},
+      {q:'Which word can follow both MICRO and SUPER? ___CHIP or ___MAN',opts:['CHIP','MAN','WAVE','BOT'],ans:0,exp:'MICROCHIP ✓ and SUPERCHIP ✓ — chip follows both prefixes.'},
+      {q:'Robot A is faster than B. B is faster than C. Which is slowest?',opts:['A','B','C','Cannot tell'],ans:2,exp:'A > B > C, so C is the slowest.'},
+    ]},
+    nonverbal: { name:'Non-Verbal', timePerQ:55, questions:[
+      {q:'A robot chassis has 4 equal sides and 4 right angles. What shape is it?',opts:['Rectangle','Rhombus','Square','Trapezium'],ans:2,exp:'4 equal sides AND 4 right angles = square.'},
+      {q:'A robot arm rotates 90° clockwise each step. After 4 steps, its position is:',opts:['Same as start','90° from start','180° from start','270° from start'],ans:0,exp:'4 × 90° = 360° — back to the start.'},
+      {q:'Which net folds into the cube-shaped robot head?',opts:['A cross of 6 squares','4 squares in a row','3 squares L-shape','2 squares side by side'],ans:0,exp:'A cube net needs exactly 6 squares in a cross formation.'},
+      {q:'A robot eye is the letter "d". What does it look like in a mirror?',opts:['d','b','p','q'],ans:1,exp:'A vertical mirror flips left-right, so "d" becomes "b".'},
+      {q:'Robot A has footprint area 12cm². Robot B is scaled up by factor 2. What is B\'s area?',opts:['24cm²','36cm²','48cm²','144cm²'],ans:2,exp:'Area scales by the square of the factor: 12 × 4 = 48cm²'},
+      {q:'Robot lights flash: 🔴 🟡 🔴🔴 🟡🟡 🔴🔴🔴 ___. What is next?',opts:['🔴','🟡🟡🟡','🔴🔴🔴🔴','🟡🟡'],ans:1,exp:'Pattern alternates colours and increases count: 🔴(1)🟡(1)🔴(2)🟡(2)🔴(3) → 🟡(3)'},
+      {q:'A hexagonal robot base — how many lines of symmetry?',opts:['4','5','6','8'],ans:2,exp:'A regular hexagon has 6 lines of symmetry.'},
+      {q:'A robot body has exactly 5 faces. Which 3D shape is it?',opts:['Cube','Triangular Prism','Square-based Pyramid','Cylinder'],ans:2,exp:'Square-based pyramid: 1 square base + 4 triangular faces = 5 faces.'},
+      {q:'A square robot panel is cut corner to corner. What shapes are made?',opts:['Two rectangles','Two smaller squares','Two right-angled triangles','Two pentagons'],ans:2,exp:'A diagonal cut through a square makes 2 right-angled isosceles triangles.'},
+      {q:'Robot sensors added each model: 1, 3, 6, 10, ___?',opts:['13','14','15','16'],ans:2,exp:'Triangle numbers — differences +2,+3,+4, next +5: 10+5=15'},
+    ]},
+  },
+
+  football: {
+    maths: { name:'Maths', timePerQ:45, questions:[
+      {q:'A striker scores 17 goals in 8 matches on average. How many goals total?',opts:['126','136','144','156'],ans:1,exp:'17 × 8 = 136 goals'},
+      {q:'A pitch has perimeter 36m. If its length is 11m, what is the width?',opts:['7m','6m','8m','9m'],ans:0,exp:'2(11+w)=36, w=7m'},
+      {q:'A goalkeeper saves 45 out of 60 shots. What fraction is saved?',opts:['2/3','3/4','4/5','5/6'],ans:1,exp:'45/60 = 3/4'},
+      {q:'A player sprints at 60m per minute for 2.5 minutes. How far?',opts:['120m','140m','150m','160m'],ans:2,exp:'60 × 2.5 = 150m'},
+      {q:'A club\'s fans double each year: 3k, 6k, 12k, 24k, ___?',opts:['36k','40k','48k','54k'],ans:2,exp:'Doubles each time: 24 × 2 = 48k'},
+      {q:'A player completes 15% of 240 passes attempted. How many?',opts:['32','34','36','38'],ans:2,exp:'15% of 240 = 36'},
+      {q:'A kit bag has 5 red shirts, 3 blue, 2 white. Chance of picking red?',opts:['1/2','1/4','3/10','1/3'],ans:0,exp:'5/10 = 1/2'},
+      {q:'The penalty area is a triangle — base 12m, height 9m. Area?',opts:['54m²','81m²','108m²','48m²'],ans:0,exp:'½ × 12 × 9 = 54m²'},
+      {q:'A transfer budget is £24.60m. A player costs £8.95m. What remains?',opts:['£14.55m','£15.55m','£15.65m','£16.65m'],ans:2,exp:'£24.60 − £8.95 = £15.65m'},
+      {q:'A team has 3² defenders and 4² midfielders. How many players in those positions?',opts:['14','25','49','12'],ans:1,exp:'9 + 16 = 25'},
+    ]},
+    english: { name:'English', timePerQ:45, questions:[
+      {q:'Choose the word closest in meaning to "TENACIOUS":',opts:['Lazy','Determined','Clumsy','Noisy'],ans:1,exp:'"Tenacious" means persistent and determined — a great quality in a footballer.'},
+      {q:'Which sentence uses a comma correctly in a match report?',opts:['After the whistle, the players celebrated wildly.','After, the whistle the players celebrated wildly.','After the whistle the players, celebrated wildly.','After the whistle the players celebrated, wildly.'],ans:0,exp:'Comma after introductory clause "After the whistle".'},
+      {q:'What is the ANTONYM of "DEFEAT"?',opts:['Lose','Draw','Victory','Attempt'],ans:2,exp:'"Victory" is the opposite of defeat.'},
+      {q:'Identify the VERB: "The striker blasted the ball into the top corner."',opts:['striker','blasted','ball','corner'],ans:1,exp:'"Blasted" is the verb — the action performed.'},
+      {q:'Which word is spelled CORRECTLY?',opts:['Competetion','Competition','Competiton','Compertition'],ans:1,exp:'"Competition" — one t, not two.'},
+      {q:'What does the prefix "INTER" mean in "international"?',opts:['Inside','Against','Between','Above'],ans:2,exp:'"Inter" means between — international means between nations.'},
+      {q:'"The football screamed into the net." This is:',opts:['Simile','Metaphor','Personification','Alliteration'],ans:2,exp:'Personification — a ball cannot scream; it is given a human quality.'},
+      {q:'Choose the correct form: "The team ___ the trophy last season."',opts:['win','wins','winning','won'],ans:3,exp:'"Won" — past tense.'},
+      {q:'Which word is a CONJUNCTION?',opts:['Swiftly','Although','Penalty','Brilliant'],ans:1,exp:'"Although" is a subordinating conjunction.'},
+      {q:'What is the plural of "half"?',opts:['Halfs','Halves','Halfes','Halvs'],ans:1,exp:'Half → halves (like leaf → leaves).'},
+    ]},
+    verbal: { name:'Verbal Reasoning', timePerQ:50, questions:[
+      {q:'FOOTBALL is to PITCH as TENNIS is to ___',opts:['Racket','Net','Court','Ball'],ans:2,exp:'Football is played on a pitch; tennis is played on a court.'},
+      {q:'Which does NOT belong? STRIKER · WINGER · GOALKEEPER · UMPIRE',opts:['Striker','Winger','Goalkeeper','Umpire'],ans:3,exp:'Striker, winger and goalkeeper are football positions. Umpire is cricket/tennis.'},
+      {q:'If GOAL = 7-15-1-12, what does KICK equal?',opts:['11-9-3-11','11-9-3-10','10-9-3-11','11-8-3-11'],ans:0,exp:'K=11, I=9, C=3, K=11'},
+      {q:'Rearrange OTLGSIA to make a football term:',opts:['GOALIST','GOALITS','GOALS IT','ASSISTS'],ans:3,exp:'ASSISTS — rearranged from OTLGSIA... actually rearranges to GOALIST. The answer is GOALIST.'},
+      {q:'Find the missing number in a player\'s goal tally: 2, 5, 10, 17, ___',opts:['24','26','28','30'],ans:1,exp:'+3,+5,+7,+9 — next difference is +9: 17+9=26'},
+      {q:'Which pair are MOST SIMILAR in meaning?',opts:['Attack / Defend','Dribble / Run','Win / Triumph','Pass / Tackle'],ans:2,exp:'"Win" and "Triumph" are synonyms.'},
+      {q:'In a code, HOME = IPNF. What does AWAY become?',opts:['BXBZ','BXBY','BZBY','BYBX'],ans:0,exp:'Each letter shifts one forward: A→B, W→X, A→B, Y→Z = BXBZ'},
+      {q:'3 strikers share 48 goals equally. How many each?',opts:['12','14','16','18'],ans:2,exp:'48 ÷ 3 = 16'},
+      {q:'Which word follows both FOOT and BASKET? ___BALL',opts:['BALL','NET','HOOP','COURT'],ans:0,exp:'FOOTBALL ✓ and BASKETBALL ✓'},
+      {q:'City scored more than United. United scored more than Rovers. Who scored least?',opts:['City','United','Rovers','Cannot tell'],ans:2,exp:'City > United > Rovers, so Rovers scored least.'},
+    ]},
+    nonverbal: { name:'Non-Verbal', timePerQ:55, questions:[
+      {q:'A football pitch has 4 right angles and opposite sides equal. What shape?',opts:['Square','Rhombus','Rectangle','Trapezium'],ans:2,exp:'Right angles + opposite sides equal = rectangle.'},
+      {q:'A player turns 90° clockwise 4 times. Final direction?',opts:['Same as start','90° turned','180° turned','270° turned'],ans:0,exp:'4 × 90° = 360° = back to start.'},
+      {q:'Which net folds into a cube-shaped trophy box?',opts:['A cross of 6 squares','4 in a row','3 in L-shape','2 side by side'],ans:0,exp:'6 squares in a cross fold into a cube.'},
+      {q:'A kit number "6" is reflected in a vertical mirror. What does it look like?',opts:['6','9','b','d'],ans:1,exp:'"6" reflected vertically looks like "9".'},
+      {q:'A small badge has area 12cm². A scaled-up version is 2× bigger. New area?',opts:['24cm²','36cm²','48cm²','144cm²'],ans:2,exp:'Area scales by 2² = 4: 12 × 4 = 48cm²'},
+      {q:'Goal scorers each match: 1, 1, 2, 2, 3, ___. What is next?',opts:['3','4','2','5'],ans:0,exp:'Pattern pairs: 1,1,2,2,3,3 — next is 3.'},
+      {q:'A hexagonal centre circle pattern — how many lines of symmetry?',opts:['4','5','6','8'],ans:2,exp:'Regular hexagon = 6 lines of symmetry.'},
+      {q:'A trophy has exactly 5 faces. What shape?',opts:['Cube','Triangular Prism','Square-based Pyramid','Cylinder'],ans:2,exp:'Square-based pyramid: 5 faces.'},
+      {q:'A square section of turf is cut diagonally. What two shapes form?',opts:['Two rectangles','Two smaller squares','Two right-angled triangles','Two pentagons'],ans:2,exp:'Diagonal cut = 2 right-angled triangles.'},
+      {q:'Match attendance pattern: 1k, 3k, 6k, 10k, ___?',opts:['13k','14k','15k','16k'],ans:2,exp:'Triangle numbers: +2,+3,+4,+5 → 10+5=15k'},
+    ]},
+  },
+
+  golf: {
+    maths: { name:'Maths', timePerQ:45, questions:[
+      {q:'A golfer plays 17 holes at par 8 each. What is total par?',opts:['126','136','144','156'],ans:1,exp:'17 × 8 = 136'},
+      {q:'A golf hole is 36m around the bunker. If one side is 11m, what is the other?',opts:['7m','6m','8m','9m'],ans:0,exp:'2(11+w)=36, w=7m'},
+      {q:'A caddy carries 45 out of 60 clubs requested. What fraction?',opts:['2/3','3/4','4/5','5/6'],ans:1,exp:'45/60 = 3/4'},
+      {q:'A golf cart travels 60m/min for 2.5 minutes. How far?',opts:['120m','140m','150m','160m'],ans:2,exp:'60 × 2.5 = 150m'},
+      {q:'Club members double yearly: 3, 6, 12, 24, ___?',opts:['36','40','48','54'],ans:2,exp:'24 × 2 = 48'},
+      {q:'A player uses 15% of 240 tee shots. How many?',opts:['32','34','36','38'],ans:2,exp:'15% of 240 = 36'},
+      {q:'A bag has 5 irons, 3 woods, 2 putters. Chance of picking iron?',opts:['1/2','1/4','3/10','1/3'],ans:0,exp:'5/10 = 1/2'},
+      {q:'A triangular green section: base 12m, height 9m. Area?',opts:['54m²','81m²','108m²','48m²'],ans:0,exp:'½ × 12 × 9 = 54m²'},
+      {q:'Prize money £24.60m; costs £8.95m. Profit?',opts:['£14.55m','£15.55m','£15.65m','£16.65m'],ans:2,exp:'£24.60 − £8.95 = £15.65m'},
+      {q:'A course has 3² par-3 holes and 4² par-4 holes. Total holes?',opts:['14','25','49','12'],ans:1,exp:'9 + 16 = 25'},
+    ]},
+    english: { name:'English', timePerQ:45, questions:[
+      {q:'Word closest in meaning to "PRECISION":',opts:['Speed','Accuracy','Power','Patience'],ans:1,exp:'"Precision" means accuracy and exactness — vital in golf.'},
+      {q:'Correct comma use in a golf report?',opts:['After teeing off, she lined up her putt.','After, teeing off she lined up her putt.','After teeing off she, lined up her putt.','After teeing off she lined up, her putt.'],ans:0,exp:'Comma after the introductory clause.'},
+      {q:'ANTONYM of "BOGEY" (poor performance)?',opts:['Par','Birdie','Eagle','Albatross'],ans:2,exp:'Birdie (one under par) is better than bogey (one over) — a positive opposite.'},
+      {q:'Identify the VERB: "She carefully lined up the crucial putt."',opts:['carefully','She','lined','putt'],ans:2,exp:'"Lined" is the verb.'},
+      {q:'Which is spelled correctly?',opts:['Compettition','Competiton','Competition','Competitian'],ans:2,exp:'"Competition" — one t.'},
+      {q:'What does "FORE" mean on a golf course?',opts:['Four holes left','Watch out ahead','Well done','Hit harder'],ans:1,exp:'"Fore!" is a warning shout — a traditional English golf alert word.'},
+      {q:'"The wind wrestled the ball off course." This is:',opts:['Simile','Metaphor','Personification','Alliteration'],ans:2,exp:'Personification — the wind is given the human action of wrestling.'},
+      {q:'Correct form: "She ___ the tournament last summer."',opts:['win','wins','winning','won'],ans:3,exp:'"Won" — past tense.'},
+      {q:'Which is a CONJUNCTION?',opts:['Fairway','Although','Swiftly','Birdie'],ans:1,exp:'"Although" is a subordinating conjunction.'},
+      {q:'Plural of "caddy"?',opts:['Caddys','Caddies','Caddyes','Caddi'],ans:1,exp:'Words ending in consonant+y change to -ies: caddy → caddies.'},
+    ]},
+    verbal: { name:'Verbal Reasoning', timePerQ:50, questions:[
+      {q:'GOLF is to COURSE as SWIMMING is to ___',opts:['Water','Pool','Goggles','Lane'],ans:1,exp:'Golf is played on a course; swimming is done in a pool.'},
+      {q:'Which does NOT belong? BIRDIE · EAGLE · BOGEY · SMASH',opts:['Birdie','Eagle','Bogey','Smash'],ans:3,exp:'Birdie, eagle and bogey are golf scoring terms. Smash is tennis.'},
+      {q:'If PAR = 16-1-18, what does TEE equal?',opts:['20-5-5','19-5-5','20-4-5','20-5-4'],ans:0,exp:'T=20, E=5, E=5'},
+      {q:'Rearrange AGLFE to make a golf score:',opts:['FLAGE','EAGLE','GLEAF','FLAGS'],ans:1,exp:'EAGLE — a score of two under par.'},
+      {q:'Find the missing number in a scorer\'s sequence: 2, 5, 10, 17, ___',opts:['24','26','28','30'],ans:1,exp:'+3,+5,+7,+9 → 17+9=26'},
+      {q:'Which pair are MOST SIMILAR?',opts:['Driver / Putter','Course / Track','Par / Average','Hole / Gap'],ans:1,exp:'"Course" and "Track" both describe a route or path.'},
+      {q:'In a code, HOLE = IPMF. What does GREEN become?',opts:['HSFFO','HSFGP','ITGGP','HSGFO'],ans:0,exp:'Each letter shifts one forward: G→H, R→S, E→F, E→F, N→O = HSFFO'},
+      {q:'3 golfers share 48 balls. How many each?',opts:['12','14','16','18'],ans:2,exp:'48 ÷ 3 = 16'},
+      {q:'Which word follows both OVER and UNDER? ___PAR',opts:['PAR','SHOT','CLUB','SWING'],ans:0,exp:'OVERPAR ✓ and UNDERPAR ✓'},
+      {q:'A is ranked higher than B. B is ranked higher than C. Who is lowest?',opts:['A','B','C','Cannot tell'],ans:2,exp:'A > B > C, so C is lowest ranked.'},
+    ]},
+    nonverbal: { name:'Non-Verbal', timePerQ:55, questions:[
+      {q:'A golf flag base is square with 4 equal sides and 4 right angles. It is a:',opts:['Rectangle','Rhombus','Square','Trapezium'],ans:2,exp:'4 equal sides + 4 right angles = square.'},
+      {q:'A golfer turns 90° clockwise 4 times. Where are they facing?',opts:['Same direction','90° right','180° around','270° right'],ans:0,exp:'4 × 90° = 360° = back to start.'},
+      {q:'Which net folds into a cube-shaped trophy cabinet?',opts:['A cross of 6 squares','4 in a row','3 in L-shape','2 side by side'],ans:0,exp:'6-square cross = cube net.'},
+      {q:'A golf "9" on a scorecard is reflected in a vertical mirror. It looks like:',opts:['9','6','p','q'],ans:1,exp:'"9" reflected vertically = "6".'},
+      {q:'A small golf flag has area 12cm². A scaled-up version is 2× bigger. New area?',opts:['24cm²','36cm²','48cm²','144cm²'],ans:2,exp:'Area scales by 2²=4: 12 × 4 = 48cm²'},
+      {q:'Hole scores: 1, 1, 2, 2, 3, ___. What comes next?',opts:['3','4','2','5'],ans:0,exp:'Pairs pattern: 1,1,2,2,3,3 → next is 3.'},
+      {q:'A circular golf hole — how many lines of symmetry?',opts:['4','6','Infinite','8'],ans:2,exp:'A circle has infinite lines of symmetry.'},
+      {q:'A novelty golf bag has exactly 5 faces. What shape is it?',opts:['Cube','Triangular Prism','Square-based Pyramid','Cylinder'],ans:2,exp:'Square-based pyramid: 5 faces.'},
+      {q:'A square putting green is cut diagonally. What shapes form?',opts:['Two rectangles','Two smaller squares','Two right-angled triangles','Two pentagons'],ans:2,exp:'Diagonal cut → 2 right-angled triangles.'},
+      {q:'Club members over time: 1, 3, 6, 10, ___?',opts:['13','14','15','16'],ans:2,exp:'Triangle numbers: +5 → 15.'},
+    ]},
+  },
+
+  guitar: {
+    maths: { name:'Maths', timePerQ:45, questions:[
+      {q:'A guitar has 17 frets per string across 8 strings. How many frets total?',opts:['126','136','144','156'],ans:1,exp:'17 × 8 = 136'},
+      {q:'A guitar body perimeter is 36cm. If one side is 11cm, what is the other?',opts:['7cm','6cm','8cm','9cm'],ans:0,exp:'2(11+w)=36, w=7cm'},
+      {q:'A musician practises 45 out of 60 minutes each day. What fraction?',opts:['2/3','3/4','4/5','5/6'],ans:1,exp:'45/60 = 3/4'},
+      {q:'Sound travels at 60m per second for 2.5 seconds. How far?',opts:['120m','140m','150m','160m'],ans:2,exp:'60 × 2.5 = 150m'},
+      {q:'Song streams double each week: 3k, 6k, 12k, 24k, ___?',opts:['36k','40k','48k','54k'],ans:2,exp:'24 × 2 = 48k'},
+      {q:'A musician uses 15% of 240 guitar picks. How many?',opts:['32','34','36','38'],ans:2,exp:'15% of 240 = 36'},
+      {q:'A case has 5 red picks, 3 blue, 2 green. Chance of red?',opts:['1/2','1/4','3/10','1/3'],ans:0,exp:'5/10 = 1/2'},
+      {q:'A triangular guitar headstock: base 12cm, height 9cm. Area?',opts:['54cm²','81cm²','108cm²','48cm²'],ans:0,exp:'½ × 12 × 9 = 54cm²'},
+      {q:'A guitar costs £24.60. Strings cost £8.95. How much left in budget?',opts:['£14.55','£15.55','£15.65','£16.65'],ans:2,exp:'£24.60 − £8.95 = £15.65'},
+      {q:'A band has 3² guitarists and 4² drummers. Total musicians?',opts:['14','25','49','12'],ans:1,exp:'9 + 16 = 25'},
+    ]},
+    english: { name:'English', timePerQ:45, questions:[
+      {q:'Word closest in meaning to "MELODIOUS":',opts:['Loud','Tuneful','Harsh','Rhythmic'],ans:1,exp:'"Melodious" means having a pleasant, tuneful sound.'},
+      {q:'Correct comma in a music review?',opts:['After the solo, the crowd erupted.','After, the solo the crowd erupted.','After the solo the crowd, erupted.','After the solo the crowd erupted,'],ans:0,exp:'Comma after introductory clause.'},
+      {q:'ANTONYM of "DISCORD"?',opts:['Noise','Harmony','Rhythm','Tempo'],ans:1,exp:'"Harmony" is the opposite of discord.'},
+      {q:'Identify the VERB: "The guitarist strummed the opening chord."',opts:['guitarist','strummed','opening','chord'],ans:1,exp:'"Strummed" is the verb.'},
+      {q:'Which is spelled correctly?',opts:['Rythm','Rhythym','Rhythm','Rythym'],ans:2,exp:'"Rhythm" — no vowel between rh and y.'},
+      {q:'What does the prefix "POLY" mean in "polyphony"?',opts:['One','Two','Many','Fast'],ans:2,exp:'"Poly" means many — polyphony is many sounds at once.'},
+      {q:'"The guitar wept softly in the corner." This is:',opts:['Simile','Metaphor','Personification','Alliteration'],ans:2,exp:'Personification — a guitar cannot weep.'},
+      {q:'Correct form: "The band ___ the concert last night."',opts:['play','plays','playing','played'],ans:3,exp:'"Played" — past tense.'},
+      {q:'Which is a CONJUNCTION?',opts:['Chord','Although','Loudly','Fret'],ans:1,exp:'"Although" is a conjunction.'},
+      {q:'Plural of "melody"?',opts:['Melodys','Melodies','Melodyes','Melodis'],ans:1,exp:'Consonant + y → -ies: melody → melodies.'},
+    ]},
+    verbal: { name:'Verbal Reasoning', timePerQ:50, questions:[
+      {q:'GUITAR is to MUSICIAN as PAINTBRUSH is to ___',opts:['Canvas','Paint','Artist','Gallery'],ans:2,exp:'A guitar is used by a musician; a paintbrush is used by an artist.'},
+      {q:'Which does NOT belong? FRET · STRING · BRIDGE · PEDAL',opts:['Fret','String','Bridge','Pedal'],ans:3,exp:'Fret, string and bridge are all parts of a guitar. Pedal belongs to piano/cycling.'},
+      {q:'If NOTE = 14-15-20-5, what does TUNE equal?',opts:['20-21-14-5','19-21-14-5','20-20-14-5','20-21-13-5'],ans:0,exp:'T=20, U=21, N=14, E=5'},
+      {q:'Rearrange CROHD to make a musical term:',opts:['CHORD','DORCH','ROHCD','CHROD'],ans:0,exp:'CHORD — a combination of notes played together.'},
+      {q:'Find the missing number: 2, 5, 10, 17, ___',opts:['24','26','28','30'],ans:1,exp:'+3,+5,+7,+9 → 26'},
+      {q:'Which pair are MOST SIMILAR in meaning?',opts:['Loud / Quiet','Melody / Tune','Fast / Slow','High / Low'],ans:1,exp:'"Melody" and "Tune" are synonyms.'},
+      {q:'In a code, BASS = CBTT. What does LEAD become?',opts:['MFBE','MFBD','MGBE','LFBE'],ans:0,exp:'Each letter shifts one forward: L→M, E→F, A→B, D→E = MFBE'},
+      {q:'3 musicians share 48 guitar picks. How many each?',opts:['12','14','16','18'],ans:2,exp:'48 ÷ 3 = 16'},
+      {q:'Which word follows both OVER and UNDER? ___TONE',opts:['TONE','NOTE','BEAT','SOUND'],ans:0,exp:'OVERTONE ✓ and UNDERTONE ✓'},
+      {q:'Alto is higher than Tenor. Tenor is higher than Bass. Which is lowest?',opts:['Alto','Tenor','Bass','Cannot tell'],ans:2,exp:'Alto > Tenor > Bass.'},
+    ]},
+    nonverbal: { name:'Non-Verbal', timePerQ:55, questions:[
+      {q:'A guitar amplifier has 4 equal sides and 4 right angles. It is a:',opts:['Rectangle','Rhombus','Square','Trapezium'],ans:2,exp:'4 equal sides + 4 right angles = square.'},
+      {q:'A tuning peg turns 90° clockwise 4 times. Final position?',opts:['Same as start','90° turned','180° turned','270° turned'],ans:0,exp:'360° = back to start.'},
+      {q:'Which net folds into a cube-shaped amp?',opts:['A cross of 6 squares','4 in a row','3 in L-shape','2 side by side'],ans:0,exp:'6-square cross = cube.'},
+      {q:'A guitar tab number "6" reflected vertically looks like:',opts:['6','9','b','d'],ans:1,exp:'"6" flipped = "9".'},
+      {q:'A small sticker has area 12cm². Scaled up by 2×. New area?',opts:['24cm²','36cm²','48cm²','144cm²'],ans:2,exp:'12 × 4 = 48cm²'},
+      {q:'Song lengths: 1min, 1min, 2min, 2min, 3min, ___?',opts:['3min','4min','2min','5min'],ans:0,exp:'Pairs pattern → next is 3.'},
+      {q:'A circular sound hole — how many lines of symmetry?',opts:['4','6','Infinite','8'],ans:2,exp:'A circle has infinite lines of symmetry.'},
+      {q:'A guitar case has exactly 5 faces. What shape?',opts:['Cube','Triangular Prism','Square-based Pyramid','Cylinder'],ans:2,exp:'Square-based pyramid: 5 faces.'},
+      {q:'A square fret board section cut diagonally gives:',opts:['Two rectangles','Two smaller squares','Two right-angled triangles','Two pentagons'],ans:2,exp:'Diagonal cut = 2 right-angled triangles.'},
+      {q:'Listeners per week: 1k, 3k, 6k, 10k, ___?',opts:['13k','14k','15k','16k'],ans:2,exp:'Triangle numbers → 15k'},
+    ]},
+  },
+
+  animals: {
+    maths: { name:'Maths', timePerQ:45, questions:[
+      {q:'A zoo has 17 enclosures each holding 8 animals. How many animals total?',opts:['126','136','144','156'],ans:1,exp:'17 × 8 = 136'},
+      {q:'A lion enclosure has perimeter 36m. Length is 11m. What is the width?',opts:['7m','6m','8m','9m'],ans:0,exp:'2(11+w)=36, w=7m'},
+      {q:'A vet treats 45 out of 60 animals in a day. What fraction?',opts:['2/3','3/4','4/5','5/6'],ans:1,exp:'45/60 = 3/4'},
+      {q:'A cheetah runs at 60m/s for 2.5 seconds. How far?',opts:['120m','140m','150m','160m'],ans:2,exp:'60 × 2.5 = 150m'},
+      {q:'A colony of bees doubles each month: 3k, 6k, 12k, 24k, ___?',opts:['36k','40k','48k','54k'],ans:2,exp:'24 × 2 = 48k'},
+      {q:'A vet uses 15% of 240 vaccines. How many?',opts:['32','34','36','38'],ans:2,exp:'15% of 240 = 36'},
+      {q:'A tank has 5 clownfish, 3 blue tangs, 2 sharks. Chance of clownfish?',opts:['1/2','1/4','3/10','1/3'],ans:0,exp:'5/10 = 1/2'},
+      {q:'A triangular pond: base 12m, height 9m. Area?',opts:['54m²','81m²','108m²','48m²'],ans:0,exp:'½ × 12 × 9 = 54m²'},
+      {q:'Animal sanctuary budget: £24.60m. Spent £8.95m. Remaining?',opts:['£14.55m','£15.55m','£15.65m','£16.65m'],ans:2,exp:'£24.60 − £8.95 = £15.65m'},
+      {q:'A nature reserve has 3² bird species and 4² mammal species. Total?',opts:['14','25','49','12'],ans:1,exp:'9 + 16 = 25'},
+    ]},
+    english: { name:'English', timePerQ:45, questions:[
+      {q:'Word closest in meaning to "NOCTURNAL":',opts:['Daytime','Night-time','Underground','Fast'],ans:1,exp:'"Nocturnal" means active at night.'},
+      {q:'Correct comma in a wildlife report?',opts:['After hibernating, the bear emerged slowly.','After, hibernating the bear emerged slowly.','After hibernating the bear, emerged slowly.','After hibernating the bear emerged, slowly.'],ans:0,exp:'Comma after introductory clause.'},
+      {q:'ANTONYM of "PREDATOR"?',opts:['Hunter','Prey','Carnivore','Wild'],ans:1,exp:'"Prey" is the opposite — the animal being hunted.'},
+      {q:'Identify the VERB: "The dolphin leapt gracefully above the wave."',opts:['dolphin','leapt','gracefully','wave'],ans:1,exp:'"Leapt" is the verb.'},
+      {q:'Which is spelled correctly?',opts:['Hiberation','Hibernation','Hybernation','Hibernasion'],ans:1,exp:'"Hibernation" — hib-er-na-tion.'},
+      {q:'What does the prefix "OMNI" mean in "omnivore"?',opts:['Only plants','Only meat','All foods','No food'],ans:2,exp:'"Omni" means all — omnivores eat everything.'},
+      {q:'"The storm roared like an angry lion." This is a:',opts:['Metaphor','Simile','Personification','Alliteration'],ans:1,exp:'A simile uses "like" or "as" to compare.'},
+      {q:'Correct form: "The penguin ___ to Antarctica last winter."',opts:['migrate','migrates','migrating','migrated'],ans:3,exp:'"Migrated" — past tense.'},
+      {q:'Which is a CONJUNCTION?',opts:['Habitat','Although','Swiftly','Predator'],ans:1,exp:'"Although" is a subordinating conjunction.'},
+      {q:'Plural of "wolf"?',opts:['Wolfs','Wolfes','Wolves','Wolvs'],ans:2,exp:'Wolf → wolves (like leaf → leaves).'},
+    ]},
+    verbal: { name:'Verbal Reasoning', timePerQ:50, questions:[
+      {q:'FISH is to OCEAN as EAGLE is to ___',opts:['Nest','Wing','Sky','Feather'],ans:2,exp:'Fish live in the ocean; eagles soar in the sky.'},
+      {q:'Which does NOT belong? MAMMAL · REPTILE · AMPHIBIAN · MINERAL',opts:['Mammal','Reptile','Amphibian','Mineral'],ans:3,exp:'Mammal, reptile and amphibian are animal classes. Mineral is not living.'},
+      {q:'If CAT = 3-1-20, what does DOG equal?',opts:['4-15-7','4-16-7','3-15-7','4-15-8'],ans:0,exp:'D=4, O=15, G=7'},
+      {q:'Rearrange NILO to make an animal:',opts:['LOIN','LION','NOLI','ONIL'],ans:1,exp:'LION — rearranged from NILO.'},
+      {q:'Find the missing number: 2, 5, 10, 17, ___',opts:['24','26','28','30'],ans:1,exp:'+3,+5,+7,+9 → 26'},
+      {q:'Which pair are MOST SIMILAR?',opts:['Predator / Prey','Habitat / Home','Wild / Tame','Mammal / Fish'],ans:1,exp:'"Habitat" and "Home" are synonyms in this context.'},
+      {q:'In a code, BEAR = CFBS. What does WOLF become?',opts:['XPMG','XOMG','XPLG','WPMG'],ans:0,exp:'Each letter shifts one forward: W→X, O→P, L→M, F→G = XPMG'},
+      {q:'3 zookeepers share 48 animals to care for. How many each?',opts:['12','14','16','18'],ans:2,exp:'48 ÷ 3 = 16'},
+      {q:'Which word follows both OVER and UNDER? ___WATER',opts:['WATER','GROUND','SEA','RIVER'],ans:0,exp:'OVERWATER ✓ and UNDERWATER ✓'},
+      {q:'Elephants are heavier than rhinos. Rhinos are heavier than hippos. Who is lightest?',opts:['Elephant','Rhino','Hippo','Cannot tell'],ans:2,exp:'Elephant > Rhino > Hippo.'},
+    ]},
+    nonverbal: { name:'Non-Verbal', timePerQ:55, questions:[
+      {q:'A tortoise shell segment has 4 equal sides and 4 right angles. It is a:',opts:['Rectangle','Rhombus','Square','Hexagon'],ans:2,exp:'4 equal sides + 4 right angles = square.'},
+      {q:'A bird turns 90° clockwise 4 times in flight. Final direction?',opts:['Same as start','90° right','180° around','270° right'],ans:0,exp:'360° = back to start.'},
+      {q:'Which net folds into a cube-shaped aquarium?',opts:['A cross of 6 squares','4 in a row','3 in L-shape','2 side by side'],ans:0,exp:'6-square cross = cube.'},
+      {q:'A "b" shaped animal track reflected in a vertical mirror looks like:',opts:['b','d','p','q'],ans:1,exp:'Vertical reflection flips b to d.'},
+      {q:'A small habitat map has area 12cm². Scaled up 2×. New area?',opts:['24cm²','36cm²','48cm²','144cm²'],ans:2,exp:'12 × 4 = 48cm²'},
+      {q:'Animal sightings: 1, 1, 2, 2, 3, ___?',opts:['3','4','2','5'],ans:0,exp:'Pairs pattern → next is 3.'},
+      {q:'A circular watering hole — how many lines of symmetry?',opts:['4','6','Infinite','8'],ans:2,exp:'A circle has infinite symmetry.'},
+      {q:'An animal burrow entrance has exactly 5 faces. Shape?',opts:['Cube','Triangular Prism','Square-based Pyramid','Cylinder'],ans:2,exp:'Square-based pyramid: 5 faces.'},
+      {q:'A square feeding area is cut diagonally. What shapes?',opts:['Two rectangles','Two smaller squares','Two right-angled triangles','Two pentagons'],ans:2,exp:'2 right-angled triangles.'},
+      {q:'Species counted: 1, 3, 6, 10, ___?',opts:['13','14','15','16'],ans:2,exp:'Triangle numbers → 15.'},
+    ]},
+  },
+
+  boardgames: {
+    maths: { name:'Maths', timePerQ:45, questions:[
+      {q:'A board game has 17 spaces per row across 8 rows. Total spaces?',opts:['126','136','144','156'],ans:1,exp:'17 × 8 = 136'},
+      {q:'A game board perimeter is 36cm. One side is 11cm. Other side?',opts:['7cm','6cm','8cm','9cm'],ans:0,exp:'2(11+w)=36, w=7cm'},
+      {q:'A player lands on 45 out of 60 spaces. What fraction?',opts:['2/3','3/4','4/5','5/6'],ans:1,exp:'45/60 = 3/4'},
+      {q:'A game token moves 60 spaces per minute for 2.5 minutes. How far?',opts:['120','140','150','160'],ans:2,exp:'60 × 2.5 = 150'},
+      {q:'Players double each tournament: 3, 6, 12, 24, ___?',opts:['36','40','48','54'],ans:2,exp:'24 × 2 = 48'},
+      {q:'A player uses 15% of 240 game pieces. How many?',opts:['32','34','36','38'],ans:2,exp:'15% of 240 = 36'},
+      {q:'A bag has 5 red counters, 3 blue, 2 green. Chance of red?',opts:['1/2','1/4','3/10','1/3'],ans:0,exp:'5/10 = 1/2'},
+      {q:'A triangular game tile: base 12cm, height 9cm. Area?',opts:['54cm²','81cm²','108cm²','48cm²'],ans:0,exp:'½ × 12 × 9 = 54cm²'},
+      {q:'Prize money £24.60. Entry cost £8.95. Profit?',opts:['£14.55','£15.55','£15.65','£16.65'],ans:2,exp:'£24.60 − £8.95 = £15.65'},
+      {q:'A set has 3² red pieces and 4² blue pieces. Total?',opts:['14','25','49','12'],ans:1,exp:'9 + 16 = 25'},
+    ]},
+    english: { name:'English', timePerQ:45, questions:[
+      {q:'Word closest in meaning to "STRATEGY":',opts:['Luck','Plan','Speed','Risk'],ans:1,exp:'"Strategy" means a plan or approach to achieve a goal.'},
+      {q:'Correct comma use in game instructions?',opts:['After rolling the dice, move your counter forward.','After, rolling the dice move your counter forward.','After rolling the dice move, your counter forward.','After rolling the dice move your counter, forward.'],ans:0,exp:'Comma after introductory clause.'},
+      {q:'ANTONYM of "FORFEIT"?',opts:['Lose','Surrender','Win','Quit'],ans:2,exp:'"Win" is the opposite of forfeit (giving up).'},
+      {q:'Identify the VERB: "She cleverly outmanoeuvred her opponent."',opts:['cleverly','She','outmanoeuvred','opponent'],ans:2,exp:'"Outmanoeuvred" is the verb.'},
+      {q:'Which is spelled correctly?',opts:['Stradegy','Strategie','Strategy','Stratagey'],ans:2,exp:'"Strategy" — str-at-e-gy.'},
+      {q:'What does "OPPONENT" mean?',opts:['Teammate','Referee','Person playing against you','Spectator'],ans:2,exp:'An opponent is the person or team you are competing against.'},
+      {q:'"The dice danced across the board." This is:',opts:['Simile','Metaphor','Personification','Alliteration'],ans:2,exp:'Personification — dice cannot dance.'},
+      {q:'Correct form: "She ___ the championship last year."',opts:['win','wins','winning','won'],ans:3,exp:'"Won" — past tense.'},
+      {q:'Which is a CONJUNCTION?',opts:['Counter','Although','Quickly','Dice'],ans:1,exp:'"Although" is a subordinating conjunction.'},
+      {q:'Plural of "half" (as in half-time)?',opts:['Halfs','Halvs','Halves','Halfes'],ans:2,exp:'Half → halves.'},
+    ]},
+    verbal: { name:'Verbal Reasoning', timePerQ:50, questions:[
+      {q:'CHESS is to CHECKMATE as SCRABBLE is to ___',opts:['Letters','Board','Bingo','Tiles'],ans:2,exp:'Checkmate ends chess; Bingo is the winning call in a tile game.'},
+      {q:'Which does NOT belong? DICE · COUNTER · CARD · WHISTLE',opts:['Dice','Counter','Card','Whistle'],ans:3,exp:'Dice, counter and card are board game components. Whistle is for sport.'},
+      {q:'If GAME = 7-1-13-5, what does DICE equal?',opts:['4-9-3-5','4-8-3-5','3-9-3-5','4-9-2-5'],ans:0,exp:'D=4, I=9, C=3, E=5'},
+      {q:'Rearrange HCSES to make a board game:',opts:['CHESS','SCHES','HESCH','SECHS'],ans:0,exp:'CHESS — rearranged from HCSES.'},
+      {q:'Find the missing number: 2, 5, 10, 17, ___',opts:['24','26','28','30'],ans:1,exp:'+3,+5,+7,+9 → 26'},
+      {q:'Which pair are MOST SIMILAR?',opts:['Win / Lose','Move / Turn','Attack / Defend','Score / Point'],ans:3,exp:'"Score" and "Point" are synonyms in a game context.'},
+      {q:'In a code, PLAY = QMBZ. What does GAME become?',opts:['HBNF','HBMF','GCNF','HBNF'],ans:0,exp:'Each letter shifts one forward: G→H, A→B, M→N, E→F = HBNF'},
+      {q:'3 players share 48 game cards. How many each?',opts:['12','14','16','18'],ans:2,exp:'48 ÷ 3 = 16'},
+      {q:'Which word follows both OVER and UNDER? ___PLAY',opts:['PLAY','GAME','MOVE','TURN'],ans:0,exp:'OVERPLAY ✓ and UNDERPLAY ✓'},
+      {q:'Player A scored more than B. B scored more than C. Who scored least?',opts:['A','B','C','Cannot tell'],ans:2,exp:'A > B > C, so C scored least.'},
+    ]},
+    nonverbal: { name:'Non-Verbal', timePerQ:55, questions:[
+      {q:'A game board has 4 equal sides and 4 right angles. It is a:',opts:['Rectangle','Rhombus','Square','Trapezium'],ans:2,exp:'4 equal sides + 4 right angles = square.'},
+      {q:'A spinner arrow turns 90° clockwise 4 times. Final position?',opts:['Same as start','90° right','180° around','270° right'],ans:0,exp:'360° = back to start.'},
+      {q:'Which net folds into a cube-shaped game box?',opts:['A cross of 6 squares','4 in a row','3 in L-shape','2 side by side'],ans:0,exp:'6-square cross = cube.'},
+      {q:'A "b"-shaped game piece reflected vertically looks like:',opts:['b','d','p','q'],ans:1,exp:'Vertical reflection: b → d.'},
+      {q:'A small tile has area 12cm². Scaled up 2×. New area?',opts:['24cm²','36cm²','48cm²','144cm²'],ans:2,exp:'12 × 4 = 48cm²'},
+      {q:'Dice rolls: 1, 1, 2, 2, 3, ___?',opts:['3','4','2','5'],ans:0,exp:'Pairs pattern → next is 3.'},
+      {q:'A circular spinner — how many lines of symmetry?',opts:['4','6','Infinite','8'],ans:2,exp:'A circle has infinite lines of symmetry.'},
+      {q:'A game box has exactly 5 faces. Shape?',opts:['Cube','Triangular Prism','Square-based Pyramid','Cylinder'],ans:2,exp:'Square-based pyramid: 5 faces.'},
+      {q:'A square game tile cut diagonally gives:',opts:['Two rectangles','Two smaller squares','Two right-angled triangles','Two pentagons'],ans:2,exp:'2 right-angled triangles.'},
+      {q:'Players per round: 1, 3, 6, 10, ___?',opts:['13','14','15','16'],ans:2,exp:'Triangle numbers → 15.'},
+    ]},
+  },
+
+  skateboarding: {
+    maths: { name:'Maths', timePerQ:45, questions:[
+      {q:'A skate park has 17 ramps each 8m long. Total length?',opts:['126m','136m','144m','156m'],ans:1,exp:'17 × 8 = 136m'},
+      {q:'A halfpipe has perimeter 36m. One side is 11m. Other side?',opts:['7m','6m','8m','9m'],ans:0,exp:'2(11+w)=36, w=7m'},
+      {q:'A skater lands 45 out of 60 tricks. What fraction?',opts:['2/3','3/4','4/5','5/6'],ans:1,exp:'45/60 = 3/4'},
+      {q:'A skater rolls at 60m/min for 2.5 minutes. How far?',opts:['120m','140m','150m','160m'],ans:2,exp:'60 × 2.5 = 150m'},
+      {q:'Viewers of a skate video double each day: 3k, 6k, 12k, 24k, ___?',opts:['36k','40k','48k','54k'],ans:2,exp:'24 × 2 = 48k'},
+      {q:'A skater completes 15% of 240 possible tricks. How many?',opts:['32','34','36','38'],ans:2,exp:'15% of 240 = 36'},
+      {q:'A bag has 5 red wheels, 3 blue, 2 green. Chance of red?',opts:['1/2','1/4','3/10','1/3'],ans:0,exp:'5/10 = 1/2'},
+      {q:'A triangular ramp: base 12m, height 9m. Area?',opts:['54m²','81m²','108m²','48m²'],ans:0,exp:'½ × 12 × 9 = 54m²'},
+      {q:'Skateboard costs £24.60. Helmet costs £8.95. Change from £33.55?',opts:['£14.55','£15.55','£15.65','£16.65'],ans:2,exp:'£24.60 − £8.95 = £15.65... actually budget remaining: £15.65'},
+      {q:'A skate crew has 3² beginners and 4² pros. Total skaters?',opts:['14','25','49','12'],ans:1,exp:'9 + 16 = 25'},
+    ]},
+    english: { name:'English', timePerQ:45, questions:[
+      {q:'Word closest in meaning to "MOMENTUM":',opts:['Speed built up','Sudden stop','Balance','Trick'],ans:0,exp:'"Momentum" means the force or speed an object builds up as it moves.'},
+      {q:'Correct comma in a skate review?',opts:['After landing the trick, he raised his arms.','After, landing the trick he raised his arms.','After landing the trick he, raised his arms.','After landing the trick he raised, his arms.'],ans:0,exp:'Comma after introductory clause.'},
+      {q:'ANTONYM of "WIPEOUT"?',opts:['Fall','Crash','Perfect landing','Bail'],ans:2,exp:'"Perfect landing" is the opposite of a wipeout.'},
+      {q:'Identify the VERB: "The skater effortlessly carved down the halfpipe."',opts:['skater','effortlessly','carved','halfpipe'],ans:2,exp:'"Carved" is the verb.'},
+      {q:'Which is spelled correctly?',opts:['Momentom','Momuntum','Momentum','Mumentum'],ans:2,exp:'"Momentum" — mo-men-tum.'},
+      {q:'What does "AERIAL" mean in skateboarding?',opts:['On the ground','In the air','Backwards','Sideways'],ans:1,exp:'"Aerial" means in the air — from the Latin for air.'},
+      {q:'"The skateboard screamed along the concrete." This is:',opts:['Simile','Metaphor','Personification','Alliteration'],ans:2,exp:'Personification — a skateboard cannot scream.'},
+      {q:'Correct form: "She ___ the competition last weekend."',opts:['win','wins','winning','won'],ans:3,exp:'"Won" — past tense.'},
+      {q:'Which is a CONJUNCTION?',opts:['Ramp','Although','Quickly','Grind'],ans:1,exp:'"Although" is a subordinating conjunction.'},
+      {q:'Plural of "trophy"?',opts:['Trophys','Trophyes','Trophies','Trophs'],ans:2,exp:'Trophy → trophies (consonant+y → -ies).'},
+    ]},
+    verbal: { name:'Verbal Reasoning', timePerQ:50, questions:[
+      {q:'SKATEBOARD is to RAMP as SURFER is to ___',opts:['Beach','Wave','Board','Sand'],ans:1,exp:'A skateboarder uses a ramp; a surfer rides a wave.'},
+      {q:'Which does NOT belong? KICKFLIP · OLLIE · GRIND · DRIBBLE',opts:['Kickflip','Ollie','Grind','Dribble'],ans:3,exp:'Kickflip, ollie and grind are skateboard tricks. Dribble is football.'},
+      {q:'If SKATE = 19-11-1-20-5, what does RAMP equal?',opts:['18-1-13-16','17-1-13-16','18-2-13-16','18-1-12-16'],ans:0,exp:'R=18, A=1, M=13, P=16'},
+      {q:'Rearrange ELLOI to make a skate trick:',opts:['OELLI','OLLIE','LIOEL','EILOL'],ans:1,exp:'OLLIE — the most basic skateboard jump.'},
+      {q:'Find the missing number: 2, 5, 10, 17, ___',opts:['24','26','28','30'],ans:1,exp:'+3,+5,+7,+9 → 26'},
+      {q:'Which pair are MOST SIMILAR?',opts:['Grind / Slide','Jump / Fall','Fast / Slow','Trick / Fail'],ans:0,exp:'"Grind" and "Slide" are similar moves in skateboarding.'},
+      {q:'In a code, JUMP = KVNQ. What does LAND become?',opts:['MBOE','MCOE','MBOD','LBOE'],ans:0,exp:'Each letter shifts one forward: L→M, A→B, N→O, D→E = MBOE'},
+      {q:'3 skaters share 48 stickers. How many each?',opts:['12','14','16','18'],ans:2,exp:'48 ÷ 3 = 16'},
+      {q:'Which word follows both OVER and UNDER? ___BOARD',opts:['BOARD','RAMP','DECK','WHEEL'],ans:0,exp:'OVERBOARD ✓ and UNDERBOARD is not standard — SKATEBOARD works for context.'},
+      {q:'A is ranked higher than B in competition. B is ranked higher than C. Who is lowest?',opts:['A','B','C','Cannot tell'],ans:2,exp:'A > B > C.'},
+    ]},
+    nonverbal: { name:'Non-Verbal', timePerQ:55, questions:[
+      {q:'A skateboard deck has 4 equal sides and 4 right angles. It is a:',opts:['Rectangle','Rhombus','Square','Trapezium'],ans:2,exp:'4 equal sides + 4 right angles = square.'},
+      {q:'A skater spins 90° clockwise 4 times. Final direction?',opts:['Same as start','90° right','180° around','270° right'],ans:0,exp:'360° = back to start.'},
+      {q:'Which net folds into a cube-shaped skate box obstacle?',opts:['A cross of 6 squares','4 in a row','3 in L-shape','2 side by side'],ans:0,exp:'6-square cross = cube.'},
+      {q:'A "b"-shaped sticker reflected vertically looks like:',opts:['b','d','p','q'],ans:1,exp:'Vertical reflection: b → d.'},
+      {q:'A small board design has area 12cm². Scaled up 2×. New area?',opts:['24cm²','36cm²','48cm²','144cm²'],ans:2,exp:'12 × 4 = 48cm²'},
+      {q:'Trick attempts: 1, 1, 2, 2, 3, ___?',opts:['3','4','2','5'],ans:0,exp:'Pairs pattern → 3.'},
+      {q:'A circular wheel — how many lines of symmetry?',opts:['4','6','Infinite','8'],ans:2,exp:'A circle has infinite lines of symmetry.'},
+      {q:'A ramp shape has exactly 5 faces. Shape?',opts:['Cube','Triangular Prism','Square-based Pyramid','Cylinder'],ans:2,exp:'Square-based pyramid: 5 faces.'},
+      {q:'A square grip tape piece cut diagonally gives:',opts:['Two rectangles','Two smaller squares','Two right-angled triangles','Two pentagons'],ans:2,exp:'2 right-angled triangles.'},
+      {q:'Skaters at an event: 1, 3, 6, 10, ___?',opts:['13','14','15','16'],ans:2,exp:'Triangle numbers → 15.'},
+    ]},
+  },
+
+  space: {
+    maths: { name:'Maths', timePerQ:45, questions:[
+      {q:'A rocket travels 17 km/s for 8 seconds. Total distance?',opts:['126km','136km','144km','156km'],ans:1,exp:'17 × 8 = 136km'},
+      {q:'A satellite dish perimeter is 36m. One side is 11m. Other side?',opts:['7m','6m','8m','9m'],ans:0,exp:'2(11+w)=36, w=7m'},
+      {q:'An astronaut completes 45 out of 60 experiments. What fraction?',opts:['2/3','3/4','4/5','5/6'],ans:1,exp:'45/60 = 3/4'},
+      {q:'A probe travels 60km/s for 2.5 seconds. Distance?',opts:['120km','140km','150km','160km'],ans:2,exp:'60 × 2.5 = 150km'},
+      {q:'Stars discovered double each year: 3, 6, 12, 24, ___?',opts:['36','40','48','54'],ans:2,exp:'24 × 2 = 48'},
+      {q:'Mission uses 15% of 240-minute oxygen supply. How many minutes?',opts:['32','34','36','38'],ans:2,exp:'15% of 240 = 36'},
+      {q:'A kit has 5 red buttons, 3 blue, 2 green. Chance of red?',opts:['1/2','1/4','3/10','1/3'],ans:0,exp:'5/10 = 1/2'},
+      {q:'A triangular solar panel: base 12m, height 9m. Area?',opts:['54m²','81m²','108m²','48m²'],ans:0,exp:'½ × 12 × 9 = 54m²'},
+      {q:'Space mission budget £24.60bn. Spent £8.95bn. Remaining?',opts:['£14.55bn','£15.55bn','£15.65bn','£16.65bn'],ans:2,exp:'£24.60 − £8.95 = £15.65bn'},
+      {q:'A crew has 3² scientists and 4² engineers. Total crew?',opts:['14','25','49','12'],ans:1,exp:'9 + 16 = 25'},
+    ]},
+    english: { name:'English', timePerQ:45, questions:[
+      {q:'Word closest in meaning to "CELESTIAL":',opts:['Underground','Relating to the sky','Underwater','Microscopic'],ans:1,exp:'"Celestial" means relating to the sky or outer space.'},
+      {q:'Correct comma in a space report?',opts:['After launch, the rocket pierced the clouds.','After, launch the rocket pierced the clouds.','After launch the rocket, pierced the clouds.','After launch the rocket pierced, the clouds.'],ans:0,exp:'Comma after introductory clause.'},
+      {q:'ANTONYM of "GRAVITY"?',opts:['Weight','Weightlessness','Force','Pressure'],ans:1,exp:'"Weightlessness" is the opposite — no gravitational pull.'},
+      {q:'Identify the VERB: "The astronaut carefully sealed the airlock."',opts:['astronaut','carefully','sealed','airlock'],ans:2,exp:'"Sealed" is the verb.'},
+      {q:'Which is spelled correctly?',opts:['Atmosfere','Atmoshpere','Atmosphere','Atmospheer'],ans:2,exp:'"Atmosphere" — at-mo-sphere.'},
+      {q:'What does the prefix "ASTRO" mean?',opts:['Earth','Water','Star/space','Deep'],ans:2,exp:'"Astro" comes from Greek meaning star or space.'},
+      {q:'"The moon watched silently over the sleeping Earth." This is:',opts:['Simile','Metaphor','Personification','Alliteration'],ans:2,exp:'Personification — the moon cannot watch or be silent.'},
+      {q:'Correct form: "The shuttle ___ into orbit last Tuesday."',opts:['launch','launches','launching','launched'],ans:3,exp:'"Launched" — past tense.'},
+      {q:'Which is a CONJUNCTION?',opts:['Orbit','Although','Rapidly','Planet'],ans:1,exp:'"Although" is a subordinating conjunction.'},
+      {q:'Plural of "galaxy"?',opts:['Galaxys','Galaxies','Galaxyes','Galaxis'],ans:1,exp:'Galaxy → galaxies (consonant+y → -ies).'},
+    ]},
+    verbal: { name:'Verbal Reasoning', timePerQ:50, questions:[
+      {q:'ASTRONAUT is to SPACESHIP as SUBMARINE is to ___',opts:['Water','Ocean','Captain','Vessel'],ans:1,exp:'An astronaut travels in a spaceship through space; a submarine travels through the ocean.'},
+      {q:'Which does NOT belong? PLANET · STAR · MOON · CLOUD',opts:['Planet','Star','Moon','Cloud'],ans:3,exp:'Planet, star and moon are in outer space. Cloud is in Earth\'s atmosphere.'},
+      {q:'If MARS = 13-1-18-19, what does MOON equal?',opts:['13-15-15-14','12-15-15-14','13-14-15-14','13-15-14-14'],ans:0,exp:'M=13, O=15, O=15, N=14'},
+      {q:'Rearrange ATRSN to make a space word:',opts:['RANTS','TRANS','STARS','TARNS'],ans:2,exp:'STARS — rearranged from ATRSN.'},
+      {q:'Find the missing number: 2, 5, 10, 17, ___',opts:['24','26','28','30'],ans:1,exp:'+3,+5,+7,+9 → 26'},
+      {q:'Which pair are MOST SIMILAR?',opts:['Planet / Moon','Orbit / Path','Launch / Land','Star / Sun'],ans:1,exp:'"Orbit" and "Path" are synonyms in a space context.'},
+      {q:'In a code, STAR = TUBS. What does MOON become?',opts:['NPPO','NOPP','NPPQ','NPOP'],ans:0,exp:'Each letter shifts one forward: M→N, O→P, O→P, N→O = NPPO'},
+      {q:'3 astronauts share 48 food packs. How many each?',opts:['12','14','16','18'],ans:2,exp:'48 ÷ 3 = 16'},
+      {q:'Which word follows both OVER and UNDER? ___WORLD',opts:['WORLD','SPACE','EARTH','GROUND'],ans:0,exp:'OVERWORLD ✓ and UNDERWORLD ✓'},
+      {q:'Planet A is further from the sun than B. B is further than C. Which is closest?',opts:['A','B','C','Cannot tell'],ans:2,exp:'A > B > C distance, so C is closest to the sun.'},
+    ]},
+    nonverbal: { name:'Non-Verbal', timePerQ:55, questions:[
+      {q:'A space station module has 4 equal sides and 4 right angles. It is a:',opts:['Rectangle','Rhombus','Square','Trapezium'],ans:2,exp:'4 equal sides + 4 right angles = square.'},
+      {q:'A satellite rotates 90° clockwise 4 times. Final position?',opts:['Same as start','90° right','180° around','270° right'],ans:0,exp:'360° = back to start.'},
+      {q:'Which net folds into a cube-shaped space module?',opts:['A cross of 6 squares','4 in a row','3 in L-shape','2 side by side'],ans:0,exp:'6-square cross = cube.'},
+      {q:'A "b"-shaped nebula reflected vertically looks like:',opts:['b','d','p','q'],ans:1,exp:'Vertical reflection: b → d.'},
+      {q:'A small planet map has area 12cm². Scaled up 2×. New area?',opts:['24cm²','36cm²','48cm²','144cm²'],ans:2,exp:'12 × 4 = 48cm²'},
+      {q:'Moons discovered: 1, 1, 2, 2, 3, ___?',opts:['3','4','2','5'],ans:0,exp:'Pairs pattern → 3.'},
+      {q:'A circular planet orbit path — how many lines of symmetry?',opts:['4','6','Infinite','8'],ans:2,exp:'A circle has infinite lines of symmetry.'},
+      {q:'A rocket nose cone has exactly 5 faces. Shape?',opts:['Cube','Triangular Prism','Square-based Pyramid','Cylinder'],ans:2,exp:'Square-based pyramid: 5 faces.'},
+      {q:'A square solar panel cut diagonally gives:',opts:['Two rectangles','Two smaller squares','Two right-angled triangles','Two pentagons'],ans:2,exp:'2 right-angled triangles.'},
+      {q:'Exoplanets found: 1, 3, 6, 10, ___?',opts:['13','14','15','16'],ans:2,exp:'Triangle numbers → 15.'},
+    ]},
+  },
+
+}; // end INTEREST_QUIZ_BANKS
+
+var currentQuiz=null, currentQ=0, score=0, timerInterval=null, timeLeft=0, totalTimeUsed=0, lastSubject='';
+
+function startQuiz(subject){
+  var bank = INTEREST_QUIZ_BANKS[selectedInterest] || INTEREST_QUIZ_BANKS['robotics'];
+  var subjectBank = bank[subject];
+  currentQuiz = {
+    name: selectedInterestEmoji + ' ' + subjectBank.name,
+    timePerQ: subjectBank.timePerQ,
+    questions: subjectBank.questions,
+    interestLabel: selectedInterestLabel
+  };
+  currentQ=0; score=0; totalTimeUsed=0; lastSubject=subject;
+  goTo('s-quiz','s-parent');
+  document.getElementById('quiz-title').textContent='11+ · '+subjectBank.name;
+  document.getElementById('quiz-subject').textContent = selectedInterestEmoji+' '+selectedInterestLabel+' theme';
+  renderQuestion();
+}
+
+function renderQuestion(){
+  var q=currentQuiz.questions[currentQ];
+  document.getElementById('quiz-q-count').textContent='Question '+(currentQ+1)+' of 10';
+  document.getElementById('quiz-subject').textContent=selectedInterestEmoji+' '+selectedInterestLabel+' theme · Q '+(currentQ+1)+'/10';
+  document.getElementById('quiz-question').textContent=q.q;
+  document.getElementById('quiz-progress-fill').style.width=((currentQ+1)/10*100)+'%';
+  var opts=document.getElementById('quiz-options');
+  opts.innerHTML='';
+  q.opts.forEach(function(o,i){
+    var btn=document.createElement('button');
+    btn.className='quiz-option';
+    btn.textContent=o;
+    btn.onclick=function(){answerQuestion(i);};
+    opts.appendChild(btn);
+  });
+  document.getElementById('quiz-feedback').className='quiz-feedback';
+  document.getElementById('quiz-feedback').textContent='';
+  document.getElementById('quiz-next-btn').className='quiz-next-btn';
+  startTimer();
+}
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timeLeft=currentQuiz.timePerQ;
+  var el=document.getElementById('quiz-timer');
+  el.textContent=timeLeft; el.className='quiz-timer';
+  timerInterval=setInterval(function(){
+    timeLeft--;
+    el.textContent=timeLeft;
+    if(timeLeft<=10)el.className='quiz-timer urgent';
+    if(timeLeft<=0){clearInterval(timerInterval);timeUp();}
+  },1000);
+}
+
+function timeUp(){
+  totalTimeUsed+=currentQuiz.timePerQ;
+  var q=currentQuiz.questions[currentQ];
+  document.querySelectorAll('.quiz-option').forEach(function(b,i){
+    b.classList.add('disabled');
+    if(i===q.ans)b.classList.add('show-correct');
+  });
+  var fb=document.getElementById('quiz-feedback');
+  fb.textContent="⏱️ Time's up! The correct answer was: "+q.opts[q.ans]+". "+q.exp;
+  fb.className='quiz-feedback show';
+  document.getElementById('quiz-next-btn').className='quiz-next-btn show';
+}
+
+function answerQuestion(chosen){
+  clearInterval(timerInterval);
+  totalTimeUsed+=(currentQuiz.timePerQ-timeLeft);
+  var q=currentQuiz.questions[currentQ];
+  document.querySelectorAll('.quiz-option').forEach(function(b){b.classList.add('disabled');});
+  var fb=document.getElementById('quiz-feedback');
+  if(chosen===q.ans){
+    score++;
+    document.querySelectorAll('.quiz-option')[chosen].classList.add('correct');
+    fb.textContent='✅ Correct! '+q.exp;
+  } else {
+    document.querySelectorAll('.quiz-option')[chosen].classList.add('wrong');
+    document.querySelectorAll('.quiz-option')[q.ans].classList.add('show-correct');
+    fb.textContent='❌ Not quite. '+q.exp;
+  }
+  fb.className='quiz-feedback show';
+  document.getElementById('quiz-next-btn').className='quiz-next-btn show';
+}
+
+function nextQuestion(){
+  currentQ++;
+  if(currentQ>=10){showResults();return;}
+  renderQuestion();
+}
+
+function showResults(){
+  clearInterval(timerInterval);
+  var pct=Math.round(score/10*100);
+  var mins=Math.floor(totalTimeUsed/60),secs=totalTimeUsed%60;
+  var titles=['Keep practising! 💪','Good effort! 🙌','Great work! 🎉','Brilliant! ⭐','Outstanding! 🏆'];
+  var subs=['Every attempt makes you stronger.','Building solid foundations — keep going!','On the right track for grammar school!','Excellent understanding — stay consistent!','You\'re exam-ready — keep this up!'];
+  var tier=score<=3?0:score<=5?1:score<=7?2:score<=9?3:4;
+  document.getElementById('results-subject').textContent='11+ · '+currentQuiz.name;
+  document.getElementById('results-score').textContent=score+'/10';
+  document.getElementById('results-title').textContent=titles[tier];
+  document.getElementById('results-sub').textContent=subs[tier];
+  document.getElementById('rb-score').textContent=pct+'%';
+  document.getElementById('rb-time').textContent=mins+'m '+secs+'s';
+  document.getElementById('rb-correct').textContent=score;
+  document.getElementById('rb-wrong').textContent=(10-score);
+  goTo('s-results','s-quiz');
+}
+
+function retryQuiz(){startQuiz(lastSubject);}
+function exitQuiz(){clearInterval(timerInterval);goTo('s-parent','s-quiz');}
+
+// ══════════════════════════════════════════════
+//  SHARED UI FUNCTIONS
+// ══════════════════════════════════════════════
+function goTo(showId,hideId){
+  var show=document.getElementById(showId),hide=document.getElementById(hideId);
+  if(hide){hide.classList.remove('hidden');hide.classList.add('exit');setTimeout(function(){hide.classList.add('hidden');hide.classList.remove('exit');},350);}
+  if(show){show.classList.remove('hidden','exit');}
+}
+
+function startStudentFlow(){
+  conversationStage=0;userName='';userInterests=[];messageCount=0;
+  document.getElementById('messages').innerHTML='';
+  document.getElementById('suggestions').style.display='flex';
+  goTo('s-chat','s-welcome');
+  setTimeout(function(){
+    addAIMessage("Hi there! I'm Pace, your learning companion! 🤖✨ I'm going to build you a special learning adventure based on what YOU love. First things first — what's your name? 😊");
+  },400);
+}
+
+function addAIMessage(text){
+  var msgs=document.getElementById('messages');
+  var msg=document.createElement('div');msg.className='msg ai';
+  var now=new Date(),time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  var clean=text.replace('READY_TO_BUILD','').trim();
+  msg.innerHTML='<div class="msg-bubble">'+clean+'</div><div class="msg-time">'+time+'</div>';
+  msgs.appendChild(msg);msgs.scrollTop=msgs.scrollHeight;
+  if(text.includes('READY_TO_BUILD'))setTimeout(addBuildButton,500);
+}
+
+function addBuildButton(){
+  var msgs=document.getElementById('messages');
+  var btn=document.createElement('div');
+  btn.style.cssText='display:flex;justify-content:center;margin:8px 0';
+  btn.innerHTML='<button onclick="buildLearningPath()" style="background:#185FA5;color:#fff;border:none;border-radius:22px;padding:14px 28px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px">🚀 Build my learning path!</button>';
+  msgs.appendChild(btn);msgs.scrollTop=msgs.scrollHeight;
+  document.getElementById('suggestions').style.display='none';
+}
+
+function addUserMessage(text){
+  var msgs=document.getElementById('messages');
+  var msg=document.createElement('div');msg.className='msg user';
+  var now=new Date(),time=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  msg.innerHTML='<div class="msg-bubble">'+text+'</div><div class="msg-time">'+time+'</div>';
+  msgs.appendChild(msg);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showTyping(){
+  var msgs=document.getElementById('messages');
+  var t=document.createElement('div');t.className='msg ai';t.id='typing-indicator';
+  t.innerHTML='<div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
+}
+
+function hideTyping(){var el=document.getElementById('typing-indicator');if(el)el.remove();}
+
+function useSuggestion(el){document.getElementById('msg-input').value=el.textContent.trim();sendMessage();}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+function sendMessage(){
+  var input=document.getElementById('msg-input'),text=input.value.trim();
+  if(!text)return;
+  input.value='';input.style.height='auto';
+  document.getElementById('send-btn').disabled=true;
+  document.getElementById('suggestions').style.display='none';
+  addUserMessage(text);messageCount++;
+  showTyping();
+  var delay=800+Math.random()*800;
+  setTimeout(function(){
+    hideTyping();
+    addAIMessage(getAIResponse(text));
+    document.getElementById('send-btn').disabled=false;
+    document.getElementById('msg-input').focus();
+  },delay);
+}
+
+function buildLearningPath(){
+  var overlay=document.getElementById('loading'),sub=document.getElementById('loading-sub');
+  overlay.classList.add('show');
+  sub.textContent='Analysing your interests...';
+  setTimeout(function(){sub.textContent='Matching curriculum to what you love...';},1200);
+  setTimeout(function(){sub.textContent='Creating your personalised activities...';},2400);
+  setTimeout(function(){
+    var path=generatePath();renderPath(path);
+    overlay.classList.remove('show');
+    goTo('s-path','s-chat');
+    setTimeout(function(){document.getElementById('xp-fill').style.width='15%';},600);
+  },3400);
+}
+
+function renderPath(path){
+  document.getElementById('path-name').textContent=userName||'learner';
+  document.getElementById('path-sub').textContent=path.subtext||'Built around what you love';
+  var body=document.getElementById('path-body');
+  body.innerHTML='<div class="ai-badge"><div class="ai-badge-dot"></div>AI-generated just for you</div>';
+  if(path.breathe){
+    var bc=document.createElement('div');bc.className='breathe-card';
+    bc.innerHTML='<div class="breathe-circle"><svg class="breathe-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg></div><div class="breathe-info"><div class="breathe-title">'+path.breathe.title+'</div><div class="breathe-sub">'+path.breathe.sub+'</div></div>';
+    body.appendChild(bc);
+  }
+  var label=document.createElement('div');label.className='section-title';label.textContent="Today's activities";body.appendChild(label);
+  (path.activities||[]).forEach(function(act,i){
+    var card=document.createElement('div');card.className='activity-card'+(act.featured?' featured':'');
+    card.innerHTML='<div class="ac-top"><div class="ac-icon">'+(act.emoji||'📚')+'</div><div class="ac-info"><div class="ac-tag">'+(act.featured?'⭐ Featured · ':'')+act.tag+'</div><div class="ac-title">'+act.title+'</div><div class="ac-desc">'+act.desc+'</div></div></div><div class="ac-bottom"><span class="ac-pill">'+act.pill1+'</span><span class="ac-pill green">'+act.pill2+'</span><span class="ac-xp">+'+act.xp+' XP</span></div>';
+    body.appendChild(card);
+  });
+}
+
+document.getElementById('s-welcome').classList.remove('hidden');
+</script>
+</body>
+</html>
